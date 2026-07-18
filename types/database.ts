@@ -56,6 +56,8 @@ export interface Product {
   slug: string
   short_description: string | null
   description: string | null
+  price: number
+  oldPrice: number | null
   featured_image_url: string | null
   badge: string | null
   color_group_id: string | null
