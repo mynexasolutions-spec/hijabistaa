@@ -18,7 +18,7 @@ export default function Footer() {
                 Subscribe to our newsletter for exclusive offers, early access to new collections, and modest styling tips.
               </p>
             </div>
-            <form className="w-full md:w-auto flex-1 max-w-md flex gap-3" onSubmit={(e) => e.preventDefault()}>
+            <form className="w-full md:w-auto flex-1 max-w-md flex gap-3 flex-wrap" onSubmit={(e) => e.preventDefault()}>
               <input 
                 type="email" 
                 placeholder="Enter your email address" 
@@ -27,7 +27,7 @@ export default function Footer() {
               />
               <button 
                 type="submit"
-                className="bg-ink hover:bg-ink/90 text-cream px-8 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 shadow-sm hover:shadow-md"
+                className="bg-ink flex-1 lg:flex-none hover:bg-ink/90 text-cream px-8 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 shadow-sm hover:shadow-md"
               >
                 Subscribe
               </button>
