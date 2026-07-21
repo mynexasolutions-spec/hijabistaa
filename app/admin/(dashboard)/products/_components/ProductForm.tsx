@@ -48,6 +48,7 @@ export default function ProductForm({ product, categories, otherProducts = [] }:
 
   return (
     <form
+      id="product-form"
       action={(formData) => startTransition(() => formAction(formData))}
       className="space-y-6"
     >

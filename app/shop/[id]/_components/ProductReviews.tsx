@@ -9,7 +9,7 @@ interface Review {
   rating: number
   comment: string | null
   created_at: string
-  profiles: { full_name: string } | null
+  customers: { full_name: string } | null
 }
 
 export default function ProductReviews({ 
@@ -56,7 +56,7 @@ export default function ProductReviews({
           rating: rating,
           comment: comment.trim() || null,
           created_at: new Date().toISOString(),
-          profiles: { full_name: 'You (Verified Buyer)' }
+          customers: { full_name: 'You (Verified Buyer)' }
         }
         setReviewsList(prev => [newReview, ...prev])
         setComment('')
@@ -106,7 +106,7 @@ export default function ProductReviews({
                       <Star key={star} className={`w-3.5 h-3.5 ${star <= review.rating ? 'fill-gold' : 'fill-stone-100 text-stone-200'}`} />
                     ))}
                   </div>
-                  <span className="text-sm font-semibold text-ink ml-1">{review.profiles?.full_name || 'Anonymous'}</span>
+                  <span className="text-sm font-semibold text-ink ml-1">{review.customers?.full_name || 'Anonymous'}</span>
                   <span className="text-xs text-ink/40 ml-auto">{new Date(review.created_at).toLocaleDateString()}</span>
                 </div>
                 {review.comment && (

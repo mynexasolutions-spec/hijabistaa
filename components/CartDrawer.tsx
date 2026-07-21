@@ -133,9 +133,7 @@ export default function CartDrawer({ isOpen, onClose, shipping }: CartDrawerProp
                 </span>
               </div>
               <p className="text-[11px] text-ink/40 leading-relaxed">
-                Shipping is ₹{flatRate} or FREE above ₹{freeThreshold.toLocaleString('en-IN')}. 
-                {codCharge > 0 && ` COD charge: ₹${codCharge}.`}
-                {onlineDiscount > 0 && ` Get ${onlineDiscount}% OFF on Online Payments.`}
+                Shipping charges: ₹99 (1-2 items), ₹150 (3-4 items), ₹200 (5+ items).
               </p>
               <div className="grid grid-cols-1 gap-2">
                 <Link

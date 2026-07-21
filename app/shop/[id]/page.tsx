@@ -233,7 +233,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         .from('reviews')
         .select(`
           id, rating, comment, created_at, is_approved, user_id,
-          profiles:user_id ( full_name )
+          customers:user_id ( full_name )
         `)
         .eq('product_id', productData.id)
         .order('created_at', { ascending: false });
@@ -257,7 +257,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           rating: r.rating,
           comment: r.comment,
           created_at: r.created_at || new Date().toISOString(),
-          profiles: { full_name: r.profiles?.full_name || 'Verified Customer' }
+          customers: { full_name: r.customers?.full_name || 'Verified Customer' }
         }));
 
       // Combine with local reviews from lib/db.json
@@ -275,7 +275,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               rating: r.rating,
               comment: r.comment,
               created_at: r.created_at || new Date().toISOString(),
-              profiles: { full_name: r.customer_name || 'Verified Customer' }
+              customers: { full_name: r.customer_name || 'Verified Customer' }
             }));
         }
       } catch (localErr) {}
@@ -299,7 +299,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     <>
       <Header />
       <main className="min-h-screen bg-cream pt-28 pb-16 md:pt-36 md:pb-24">
-        <div className="max-w-wrap mx-auto px-5 md:px-8">
+        <div className="max-w-wrap mx-auto px-5 md:px-8 py-5">
 
           {/* Breadcrumbs */}
           <div className="flex items-center gap-1.5 text-xs text-ink/50 font-medium mb-8">

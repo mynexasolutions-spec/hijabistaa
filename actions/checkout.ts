@@ -76,13 +76,18 @@ export async function createOrder(addressId: string, paymentMethod: string, cart
     online_discount: 0
   }
 
-  const flatRate = Number(shippingSettings.flat_rate ?? 99)
-  const freeThreshold = Number(shippingSettings.free_threshold ?? 1999)
-  const codCharge = Number(shippingSettings.cod_charge ?? 50)
+  // Calculate total quantity for new tiered shipping logic
+  const totalQuantity = orderItems.reduce((sum, item) => sum + item.quantity, 0)
+  let shipping_cost = 200
+  if (totalQuantity <= 2) {
+    shipping_cost = 99
+  } else if (totalQuantity <= 4) {
+    shipping_cost = 150
+  }
+
   const onlineDiscountPercent = Number(shippingSettings.online_discount ?? 0)
 
-  const shipping_cost = subtotal >= freeThreshold ? 0 : flatRate
-  const cod_cost = paymentMethod === 'COD' ? codCharge : 0
+  const cod_cost = 0 // COD is removed
   const online_discount_amount = paymentMethod === 'RAZORPAY'
     ? Math.round((subtotal * onlineDiscountPercent) / 100)
     : 0
@@ -91,12 +96,13 @@ export async function createOrder(addressId: string, paymentMethod: string, cart
   // Generate order number
   const order_number = `AM-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
 
-  const actualPaymentMethod = paymentMethod === 'RAZORPAY' ? 'Online Payment (Razorpay)' : 'Cash on Delivery'
+  const actualPaymentMethod = 'Online Payment (Razorpay)'
 
   // 5. Insert Order
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .insert([{
+      id: globalThis.crypto.randomUUID(),
       order_number,
       user_id: user.id,
       address_id: addressId,
@@ -266,7 +272,7 @@ export async function verifyRazorpayPayment(
 export async function processCheckout(
   profile: { fullName: string, email: string, phone: string, alternatePhone?: string, street: string, city: string, state: string, zipCode: string },
   items: any[],
-  paymentMethod: 'COD' | 'RAZORPAY'
+  paymentMethod: 'RAZORPAY' | 'COD' | string
 ) {
   const supabase = await createClient()
   let { data: { user } } = await supabase.auth.getUser()

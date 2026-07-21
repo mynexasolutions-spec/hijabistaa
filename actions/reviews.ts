@@ -80,7 +80,7 @@ export async function submitReview(
       let validUserId: string | null = null
       if (user?.id) {
         const { data: profile } = await supabase
-          .from('profiles')
+          .from('customers')
           .select('id')
           .eq('id', user.id)
           .single()
@@ -88,7 +88,7 @@ export async function submitReview(
         if (profile) {
           validUserId = user.id
         } else {
-          const { error: profileError } = await supabase.from('profiles').insert({
+          const { error: profileError } = await supabase.from('customers').insert({
             id: user.id,
             email: user.email || 'customer@hijabistaa.com',
             full_name: customerName

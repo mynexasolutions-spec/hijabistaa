@@ -54,24 +54,26 @@ export default function Hero({
 
   const allAvailableImages = activeSlides.map((s: any) => s.image_url).filter(Boolean);
   
-  const gridImages = [
-    ...allAvailableImages,
-    ...gridFallbackImages,
-    "/abaya-front-open.png",
-    "/luxe-salwar-kameez.png"
-  ].slice(0, 6);
+  const gridImages = allAvailableImages.length > 0
+    ? allAvailableImages.slice(0, 6)
+    : [
+        ...gridFallbackImages,
+        "/abaya-front-open.png",
+        "/luxe-salwar-kameez.png"
+      ].slice(0, 6);
 
-  const mobileCarouselImages = Array.from(new Set([
-    ...allAvailableImages,
-    "/khimar-handwork.png",
-    "/abaya-double-layer.png",
-    "/model-cream-hijab.png",
-    "/jilbab-blue.png",
-    "/khimar-handwork-1.png",
-    "/abaya-front-open.png",
-    "/luxe-salwar-kameez.png",
-    "/jilbab-black.png"
-  ].filter(Boolean))) as string[];
+  const mobileCarouselImages = allAvailableImages.length > 0
+    ? allAvailableImages
+    : [
+        "/khimar-handwork.png",
+        "/abaya-double-layer.png",
+        "/model-cream-hijab.png",
+        "/jilbab-blue.png",
+        "/khimar-handwork-1.png",
+        "/abaya-front-open.png",
+        "/luxe-salwar-kameez.png",
+        "/jilbab-black.png"
+      ];
 
   const [activeArchIndex, setActiveArchIndex] = useState(0);
   const [activeGridIndex, setActiveGridIndex] = useState(0);

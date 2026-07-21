@@ -6,6 +6,8 @@ import ProductInfoEditor from '../../_components/ProductInfoEditor'
 import ProductFaqEditor from '../../_components/ProductFaqEditor'
 import { ProductVariantsEditor } from '../../_components/ProductVariantsEditor'
 import { ProductImagesEditor } from '../../_components/ProductImagesEditor'
+import { ArrowLeft, Save } from 'lucide-react'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Edit Product',
@@ -59,6 +61,24 @@ export default async function EditProductPage({
 
   return (
     <div className="max-w-6xl space-y-6">
+      <div className="flex items-center justify-between pb-4 border-b border-stone-200">
+        <Link
+          href="/admin/products"
+          className="inline-flex items-center gap-2 text-sm text-stone-500 hover:text-stone-700 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Products
+        </Link>
+        <button
+          type="submit"
+          form="product-form"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold rounded-xl shadow-md shadow-orange-500/20 hover:shadow-lg hover:from-orange-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500/40 transition-all duration-200"
+        >
+          <Save className="w-4 h-4" />
+          Update Product
+        </button>
+      </div>
+
       <div>
         <h1 className="text-2xl font-bold text-stone-900">Edit Product</h1>
         <p className="text-stone-500 text-sm mt-0.5">
@@ -97,6 +117,24 @@ export default async function EditProductPage({
         initialItems={faqRes.data || []}
         initialUseGlobal={productRes.data.use_global_faqs}
       />
+
+      <div className="flex items-center justify-between pt-4 border-t border-stone-200">
+        <Link
+          href="/admin/products"
+          className="inline-flex items-center gap-2 text-sm text-stone-500 hover:text-stone-700 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Products
+        </Link>
+        <button
+          type="submit"
+          form="product-form"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold rounded-xl shadow-md shadow-orange-500/20 hover:shadow-lg hover:from-orange-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500/40 transition-all duration-200"
+        >
+          <Save className="w-4 h-4" />
+          Update Product
+        </button>
+      </div>
     </div>
   )
 }

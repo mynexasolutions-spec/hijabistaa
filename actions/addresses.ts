@@ -12,7 +12,6 @@ export async function addAddress(formData: FormData) {
   const fullName = formData.get('full_name')?.toString()
   const phone = formData.get('phone')?.toString()
   const addressLine1 = formData.get('address_line_1')?.toString()
-  const addressLine2 = formData.get('address_line_2')?.toString() || null
   const city = formData.get('city')?.toString()
   const state = formData.get('state')?.toString()
   const postalCode = formData.get('postal_code')?.toString()
@@ -43,7 +42,6 @@ export async function addAddress(formData: FormData) {
       full_name: fullName,
       phone,
       address_line_1: addressLine1,
-      address_line_2: addressLine2,
       city,
       state,
       postal_code: postalCode,
@@ -78,7 +76,6 @@ export async function updateAddress(id: string, formData: FormData) {
   const fullName = formData.get('full_name')?.toString()
   const phone = formData.get('phone')?.toString()
   const addressLine1 = formData.get('address_line_1')?.toString()
-  const addressLine2 = formData.get('address_line_2')?.toString() || null
   const city = formData.get('city')?.toString()
   const state = formData.get('state')?.toString()
   const postalCode = formData.get('postal_code')?.toString()
@@ -98,7 +95,6 @@ export async function updateAddress(id: string, formData: FormData) {
       full_name: fullName,
       phone,
       address_line_1: addressLine1,
-      address_line_2: addressLine2,
       city,
       state,
       postal_code: postalCode,

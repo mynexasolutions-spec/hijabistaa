@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCart } from '@/context/CartContext'
+import { useWishlist } from '@/context/WishlistContext'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ShoppingBag, ArrowRight } from 'lucide-react'
+import { ShoppingBag, ArrowRight, Heart } from 'lucide-react'
 
 type Product = {
   id: string
@@ -23,6 +24,7 @@ type Product = {
 type Category = {
   id: string
   name: string
+  parent_id?: string | null
 }
 
 type ShopGridProps = {
@@ -45,7 +47,9 @@ export default function ShopGrid({ initialProducts, categories, selectedCategory
     selectedCategory ? [selectedCategory] : []
   )
   const [maxPrice, setMaxPrice] = useState<number>(15000)
+  const [sortOption, setSortOption] = useState<string>('featured')
   const { addToCart } = useCart()
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
   const router = useRouter()
 
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false)
@@ -65,11 +69,28 @@ export default function ShopGrid({ initialProducts, categories, selectedCategory
   }
 
   // Filter products by category and price
-  const filteredProducts = initialProducts.filter(p => {
+  let filteredProducts = initialProducts.filter(p => {
     if (p.is_active === false) return false;
     if (selectedCategories.length > 0 && !selectedCategories.includes(p.category_id)) return false;
     if (p.price > maxPrice) return false;
     return true;
+  });
+
+  // Sort products
+  filteredProducts = filteredProducts.sort((a, b) => {
+    switch (sortOption) {
+      case 'price-low-high':
+        return a.price - b.price;
+      case 'price-high-low':
+        return b.price - a.price;
+      case 'name-a-z':
+        return a.name.localeCompare(b.name);
+      case 'name-z-a':
+        return b.name.localeCompare(a.name);
+      case 'featured':
+      default:
+        return 0;
+    }
   });
 
   const FilterContent = (
@@ -82,7 +103,12 @@ export default function ShopGrid({ initialProducts, categories, selectedCategory
             onClick={() => {
               setSelectedCategories([]);
               setMaxPrice(15000);
-              router.push('/shop');
+              const currentSearch = new URLSearchParams(window.location.search).get('search');
+              if (currentSearch) {
+                 router.push(`/shop?search=${encodeURIComponent(currentSearch)}`);
+              } else {
+                 router.push('/shop');
+              }
             }}
             className="text-[13px] font-body font-medium text-[#C84B31] hover:text-[#A83D26] hover:underline flex items-center gap-1.5 transition-all"
             title="Reset Categories and Filters"
@@ -94,32 +120,69 @@ export default function ShopGrid({ initialProducts, categories, selectedCategory
           </button>
         </div>
         <div className="space-y-3.5">
-          {categories.map((cat) => (
-            <label key={cat.id} className="flex items-center gap-3 cursor-pointer group">
-              <input 
-                type="checkbox" 
-                className="hidden" 
-                checked={selectedCategories.includes(cat.id)}
-                onChange={() => toggleCategory(cat.id)}
-              />
-              <div 
-                className={`w-5 h-5 rounded border flex items-center justify-center transition-colors shadow-sm ${
-                  selectedCategories.includes(cat.id) 
-                    ? 'bg-emerald border-emerald' 
-                    : 'bg-white border-cream-line group-hover:border-emerald'
-                }`}
-              >
-                {selectedCategories.includes(cat.id) && (
-                  <svg className="w-3.5 h-3.5 text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
+          {categories.filter(c => !c.parent_id).map((mainCat) => {
+            const subCategories = categories.filter(c => c.parent_id === mainCat.id);
+            return (
+              <div key={mainCat.id} className="space-y-2">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <input 
+                    type="checkbox" 
+                    className="hidden" 
+                    checked={selectedCategories.includes(mainCat.id)}
+                    onChange={() => toggleCategory(mainCat.id)}
+                  />
+                  <div 
+                    className={`w-5 h-5 rounded border flex items-center justify-center transition-colors shadow-sm ${
+                      selectedCategories.includes(mainCat.id) 
+                        ? 'bg-emerald border-emerald' 
+                        : 'bg-white border-cream-line group-hover:border-emerald'
+                    }`}
+                  >
+                    {selectedCategories.includes(mainCat.id) && (
+                      <svg className="w-3.5 h-3.5 text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className={`text-[15px] font-medium transition-colors ${selectedCategories.includes(mainCat.id) ? 'text-emerald' : 'text-ink/90 group-hover:text-emerald'}`}>
+                    {mainCat.name}
+                  </span>
+                </label>
+                
+                {/* Subcategories (if any) */}
+                {subCategories.length > 0 && (
+                  <div className="pl-6 space-y-2.5 mt-2 border-l-2 border-cream-line/40 ml-2.5">
+                    {subCategories.map(subCat => (
+                      <label key={subCat.id} className="flex items-center gap-2.5 cursor-pointer group">
+                        <input 
+                          type="checkbox" 
+                          className="hidden" 
+                          checked={selectedCategories.includes(subCat.id)}
+                          onChange={() => toggleCategory(subCat.id)}
+                        />
+                        <div 
+                          className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-colors shadow-sm ${
+                            selectedCategories.includes(subCat.id) 
+                              ? 'bg-emerald border-emerald' 
+                              : 'bg-white border-cream-line group-hover:border-emerald'
+                          }`}
+                        >
+                          {selectedCategories.includes(subCat.id) && (
+                            <svg className="w-3 h-3 text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        <span className={`text-[14px] transition-colors ${selectedCategories.includes(subCat.id) ? 'text-emerald font-medium' : 'text-ink/75 group-hover:text-emerald'}`}>
+                          {subCat.name}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
                 )}
               </div>
-              <span className="text-ink/80 text-[15px] font-medium group-hover:text-emerald transition-colors">
-                {cat.name}
-              </span>
-            </label>
-          ))}
+            )
+          })}
         </div>
       </div>
 
@@ -173,20 +236,37 @@ export default function ShopGrid({ initialProducts, categories, selectedCategory
 
         {/* Main Grid Area */}
         <div className="lg:col-span-3 space-y-6">
-          <div className="flex items-center justify-between pb-3 border-b border-cream-line/50">
+          <div className="flex flex-wrap items-center justify-between pb-3 border-b border-cream-line/50 gap-3">
             <p className="text-[15px] font-bold text-ink/70">
               Showing <span className="text-emerald">{filteredProducts.length}</span> products
             </p>
-            {/* Mobile Filter Toggle */}
-            <button 
-              onClick={() => setIsMobileFilterOpen(true)}
-              className="lg:hidden px-4 py-2 bg-emerald text-cream rounded-full text-sm font-semibold flex items-center gap-2 shadow-sm"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-              </svg>
-              Filters
-            </button>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <label htmlFor="sort" className="text-sm font-medium text-ink/70 hidden sm:block">Sort by:</label>
+                <select 
+                  id="sort"
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value)}
+                  className="bg-white border border-cream-line rounded-lg px-3 py-1.5 text-sm font-medium text-ink focus:outline-none focus:ring-1 focus:ring-emerald shadow-sm cursor-pointer"
+                >
+                  <option value="featured">Featured</option>
+                  <option value="price-low-high">Price: Low to High</option>
+                  <option value="price-high-low">Price: High to Low</option>
+                  <option value="name-a-z">Name: A-Z</option>
+                  <option value="name-z-a">Name: Z-A</option>
+                </select>
+              </div>
+              {/* Mobile Filter Toggle */}
+              <button 
+                onClick={() => setIsMobileFilterOpen(true)}
+                className="lg:hidden px-4 py-1.5 bg-emerald text-cream rounded-full text-sm font-semibold flex items-center gap-2 shadow-sm whitespace-nowrap"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                Filters
+              </button>
+            </div>
           </div>
 
           {filteredProducts.length === 0 ? (
@@ -214,6 +294,28 @@ export default function ShopGrid({ initialProducts, categories, selectedCategory
                         {p.badge}
                       </span>
                     )}
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        if (isInWishlist(p.id)) {
+                          removeFromWishlist(p.id)
+                        } else {
+                          addToWishlist({
+                            id: p.id,
+                            name: p.name,
+                            price: p.price,
+                            oldPrice: p.oldPrice,
+                            image_url: p.image_url,
+                            category_id: p.category_id,
+                            badge: p.badge,
+                          })
+                        }
+                      }}
+                      className="absolute top-2 left-2 z-10 p-2 bg-white/80 backdrop-blur-sm rounded-full text-ink/60 hover:text-[#C84B31] hover:bg-white transition-all shadow-sm"
+                      aria-label={isInWishlist(p.id) ? "Remove from wishlist" : "Add to wishlist"}
+                    >
+                      <Heart className={`w-4 h-4 ${isInWishlist(p.id) ? "fill-[#C84B31] text-[#C84B31]" : ""}`} />
+                    </button>
                   </div>
 
                   <div className="flex flex-col flex-1 pt-3 px-0.5">

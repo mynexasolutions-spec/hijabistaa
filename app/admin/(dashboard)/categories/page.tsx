@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { Plus, FolderTree } from 'lucide-react'
 import type { Metadata } from 'next'
 import CategoryRow from './_components/CategoryRow'
+import DiscoverMenuManager from './_components/DiscoverMenuManager'
+import { getMegaMenuDiscoverItems } from '@/actions/admin/megaMenuDiscover'
 
 export const metadata: Metadata = {
   title: 'Categories',
@@ -11,10 +13,36 @@ export const metadata: Metadata = {
 export default async function CategoriesPage() {
   const supabase = await createClient()
 
-  const { data: categories } = await supabase
+  const { data: categoriesData } = await supabase
     .from('categories')
-    .select('*')
+    .select('*, products(count)')
     .order('created_at', { ascending: false })
+
+  const categories = categoriesData?.map((category: any) => ({
+    ...category,
+    count: category.products?.[0]?.count || 0,
+  })) || []
+
+  // Group subcategories under their parents
+  const topLevel = categories.filter((c: any) => !c.parent_id).sort((a: any, b: any) => a.name.localeCompare(b.name))
+  const sortedCategories: any[] = []
+  
+  topLevel.forEach((parent: any) => {
+    sortedCategories.push(parent)
+    const children = categories.filter((c: any) => c.parent_id === parent.id).sort((a: any, b: any) => a.name.localeCompare(b.name))
+    children.forEach((child: any) => {
+      sortedCategories.push({ ...child, isSubcategory: true, parentName: parent.name })
+    })
+  })
+  
+  // Add any categories that might have missing parents (orphans)
+  categories.forEach((c: any) => {
+    if (!sortedCategories.find(sc => sc.id === c.id)) {
+      sortedCategories.push(c)
+    }
+  })
+
+  const discoverItems = await getMegaMenuDiscoverItems()
 
   return (
     <div className="space-y-6">
@@ -54,6 +82,9 @@ export default async function CategoriesPage() {
                     Name
                   </th>
                   <th className="text-left text-xs font-medium text-stone-500 uppercase tracking-wider px-6 py-3">
+                    Products
+                  </th>
+                  <th className="text-left text-xs font-medium text-stone-500 uppercase tracking-wider px-6 py-3">
                     Slug
                   </th>
                   <th className="text-left text-xs font-medium text-stone-500 uppercase tracking-wider px-6 py-3">
@@ -68,7 +99,7 @@ export default async function CategoriesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
-                {categories.map((category) => (
+                {sortedCategories.map((category) => (
                   <CategoryRow key={category.id} category={category} />
                 ))}
               </tbody>
@@ -76,6 +107,9 @@ export default async function CategoriesPage() {
           </div>
         )}
       </div>
+
+      {/* Discover Menu Section */}
+      <DiscoverMenuManager initialItems={discoverItems} />
     </div>
   )
 }

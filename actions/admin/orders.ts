@@ -69,3 +69,24 @@ export async function updatePaymentStatus(orderId: string, status: string) {
   revalidatePath(`/admin/orders/${orderId}`)
   return { success: true }
 }
+
+export async function deleteOrder(orderId: string) {
+  const supabase = await createClient()
+  
+  const isAdmin = await checkAdminAuth(supabase)
+  if (!isAdmin) return { success: false, error: 'Unauthorized' }
+
+  const { createAdminClient } = await import('@/lib/supabase/admin')
+  const adminClient = createAdminClient()
+
+  // Due to ON DELETE CASCADE, deleting the order will also delete order_items.
+  const { error } = await adminClient
+    .from('orders')
+    .delete()
+    .eq('id', orderId)
+
+  if (error) return { success: false, error: error.message }
+
+  revalidatePath('/admin/orders')
+  return { success: true }
+}

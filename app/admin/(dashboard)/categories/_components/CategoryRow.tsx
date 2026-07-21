@@ -4,9 +4,10 @@ import Link from 'next/link'
 import { Pencil, Trash2 } from 'lucide-react'
 import { deleteCategory, toggleCategoryStatus } from '@/actions/categories'
 import { useState, useTransition } from 'react'
+import { CornerDownRight } from 'lucide-react'
 import type { Category } from '@/types/database'
 
-export default function CategoryRow({ category }: { category: Category }) {
+export default function CategoryRow({ category }: { category: Category & { count?: number, isSubcategory?: boolean, parentName?: string } }) {
   const [isPending, startTransition] = useTransition()
   const [deleted, setDeleted] = useState(false)
 
@@ -15,7 +16,12 @@ export default function CategoryRow({ category }: { category: Category }) {
   return (
     <tr className="hover:bg-stone-50/50 transition-colors">
       <td className="px-6 py-3.5">
-        <div className="flex items-center gap-3">
+        <div className={`flex items-center gap-3 ${category.isSubcategory ? 'ml-8 relative' : ''}`}>
+          {category.isSubcategory && (
+            <div className="absolute -left-6 text-stone-300">
+              <CornerDownRight className="w-4 h-4" />
+            </div>
+          )}
           {category.image_url ? (
             <img
               src={category.image_url}
@@ -27,15 +33,24 @@ export default function CategoryRow({ category }: { category: Category }) {
               IMG
             </div>
           )}
-          <div>
-            <p className="text-sm font-medium text-stone-900">{category.name}</p>
-            {category.description && (
+            <div>
+              <p className="text-sm font-medium text-stone-900">{category.name}</p>
+            {category.isSubcategory ? (
+              <p className="text-xs text-stone-500 mt-0.5 flex items-center gap-1">
+                Sub-category of <span className="font-semibold text-stone-700">{category.parentName}</span>
+              </p>
+            ) : category.description ? (
               <p className="text-xs text-stone-400 mt-0.5 line-clamp-1">
                 {category.description}
               </p>
-            )}
+            ) : null}
           </div>
         </div>
+      </td>
+      <td className="px-6 py-3.5">
+        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#9C5247]/10 text-[#9C5247] border border-[#9C5247]/20">
+          {category.count || 0} Products
+        </span>
       </td>
       <td className="px-6 py-3.5">
         <code className="text-xs bg-stone-100 text-stone-600 px-2 py-0.5 rounded">

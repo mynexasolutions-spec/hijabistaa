@@ -332,17 +332,8 @@ export default function Categories({ categories = [] }: { categories?: Category[
                     />
                   </div>
 
-                  {/* Overlapping Circular SVG Icon Badge (Smaller box & icon) */}
-                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#FAF6F0] border-[3px] md:border-[3.5px] border-white shadow-md flex items-center justify-center -mt-6 md:-mt-7 mx-auto relative z-10 group-hover:scale-105 group-hover:border-cream-line transition-all duration-300 shrink-0">
-                    <CategorySvgIcon
-                      categoryId={cat.id}
-                      categoryName={cat.name}
-                      className="w-6 h-6 md:w-7 md:h-7 text-[#7E3F35] transition-transform duration-300 group-hover:scale-110"
-                    />
-                  </div>
-
                   {/* Bottom Text Section (Compact & responsive text) */}
-                  <div className="pt-2 sm:pt-2.5 pb-4 md:pb-5 px-2 sm:px-2.5 flex flex-col items-center text-center flex-grow justify-center">
+                  <div className="pt-4 sm:pt-5 pb-4 md:pb-5 px-2 sm:px-2.5 flex flex-col items-center text-center flex-grow justify-center">
                     <h3 className="font-display font-bold text-ink text-[13.5px] sm:text-[14.5px] lg:text-[15.5px] leading-tight group-hover:text-[#7E3F35] transition-colors line-clamp-1">
                       {cat.name}
                     </h3>

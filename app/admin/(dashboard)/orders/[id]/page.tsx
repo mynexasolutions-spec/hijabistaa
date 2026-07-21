@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, User, MapPin, Package, CreditCard } from 'lucide-react'
 import { OrderStatusManager } from '../_components/OrderStatusManager'
+import { DeleteOrderButton } from '../_components/DeleteOrderButton'
 
 export const metadata = {
   title: 'Order Details | Admin Dashboard',
@@ -23,7 +24,7 @@ export default async function AdminOrderDetailsPage({
     .from('orders')
     .select(`
       *,
-      profiles:user_id (
+      customers:user_id (
         full_name,
         email,
         phone
@@ -80,13 +81,18 @@ export default async function AdminOrderDetailsPage({
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-stone-900">Order {order.order_number}</h1>
-          <p className="text-sm text-stone-500 mt-1">
-            Placed on {new Date(order.created_at).toLocaleString('en-IN', {
-              day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-            })}
-          </p>
+        <div className="flex-1 flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold text-stone-900">Order {order.order_number}</h1>
+            <p className="text-sm text-stone-500 mt-1">
+              Placed on {new Date(order.created_at).toLocaleString('en-IN', {
+                day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+              })}
+            </p>
+          </div>
+          <div className="bg-white border border-stone-200 rounded-xl">
+            <DeleteOrderButton orderId={order.id} redirectAfter={true} />
+          </div>
         </div>
       </div>
 
@@ -103,9 +109,9 @@ export default async function AdminOrderDetailsPage({
                 Customer
               </h3>
               <div className="space-y-2 text-sm">
-                <p className="font-medium text-stone-900">{order.profiles?.full_name || 'Guest'}</p>
-                <p className="text-stone-600">{order.profiles?.email}</p>
-                {order.profiles?.phone && <p className="text-stone-600">{order.profiles.phone}</p>}
+                <p className="font-medium text-stone-900">{order.customers?.full_name || 'Guest'}</p>
+                <p className="text-stone-600">{order.customers?.email}</p>
+                {order.customers?.phone && <p className="text-stone-600">{order.customers.phone}</p>}
               </div>
             </div>
 
@@ -230,6 +236,14 @@ export default async function AdminOrderDetailsPage({
                   <span className="font-medium text-stone-900">₹{order.shipping_cost}</span>
                 )}
               </div>
+              
+              {order.payment_method === 'Cash on Delivery' && (order.total_amount - order.subtotal - order.shipping_cost) > 0 && (
+                <div className="flex justify-between text-stone-600">
+                  <span>COD Charge</span>
+                  <span className="font-medium text-stone-900">₹{order.total_amount - order.subtotal - order.shipping_cost}</span>
+                </div>
+              )}
+
               <div className="pt-3 border-t border-stone-200 flex justify-between items-center">
                 <span className="font-bold text-stone-900">Total</span>
                 <span className="text-xl font-bold text-orange-600">₹{order.total_amount}</span>

@@ -25,6 +25,13 @@ export default async function EditCategoryPage({
     notFound()
   }
 
+  const { data: parentCategories } = await supabase
+    .from('categories')
+    .select('*')
+    .is('parent_id', null)
+    .neq('id', id)
+    .order('name')
+
   return (
     <div className="max-w-2xl space-y-6">
       <div>
@@ -33,7 +40,7 @@ export default async function EditCategoryPage({
           Update &quot;{category.name}&quot;
         </p>
       </div>
-      <CategoryForm category={category} />
+      <CategoryForm category={category} parentCategories={parentCategories || []} />
     </div>
   )
 }

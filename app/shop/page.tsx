@@ -31,7 +31,7 @@ export default async function ShopPage({
     .order('created_at', { ascending: false });
 
   if (searchQuery) {
-    productsQuery = productsQuery.ilike('name', `%${searchQuery}%`);
+    productsQuery = productsQuery.or(`name.ilike.%${searchQuery}%,category_id.ilike.%${searchQuery}%`);
   }
 
   if (featuredOnly) {
@@ -87,14 +87,16 @@ export default async function ShopPage({
           <div className="relative z-10 text-center px-5">
             <div className="eyebrow justify-center inline-flex items-center gap-2 mb-3">
               <span className="h-px w-6 bg-gold" />
-              Complete Collection
+              {searchQuery ? 'Search Results' : 'Complete Collection'}
               <span className="h-px w-6 bg-gold" />
             </div>
             <h1 className="font-display font-bold text-3xl md:text-5xl text-ink tracking-wide">
-              Shop the Drop
+              {searchQuery ? `Results for "${searchQuery}"` : 'Shop the Drop'}
             </h1>
             <p className="mt-4 text-ink/75 font-body text-sm md:text-base max-w-lg mx-auto">
-              Timeless hijabs and modest silhouettes designed with maximum drape, elegance, and comfort.
+              {searchQuery 
+                ? `Showing matching products for your search. Use the filters below to refine your results.` 
+                : 'Timeless hijabs and modest silhouettes designed with maximum drape, elegance, and comfort.'}
             </p>
           </div>
         </section>

@@ -20,6 +20,8 @@ import {
   Truck,
   Tag,
   Gift,
+  Mail,
+  Instagram,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -29,9 +31,11 @@ const navItems = [
   { label: 'Products', href: '/admin/products', icon: Package },
   { label: 'Orders', href: '/admin/orders', icon: ShoppingCart },
   { label: 'Customers', href: '/admin/customers', icon: Users },
+  { label: 'Subscribers', href: '/admin/subscribers', icon: Mail },
   { label: 'Reviews', href: '/admin/reviews', icon: Star },
   { label: 'Inquiries', href: '/admin/inquiries', icon: MessageSquare },
   { label: 'Hero Slides', href: '/admin/hero-slides', icon: Image },
+  { label: 'Instagram Gallery', href: '/admin/instagram', icon: Instagram },
   { label: 'Promo Popup', href: '/admin/home-banner', icon: Gift },
   { label: 'Announcements', href: '/admin/announcements', icon: Megaphone },
   { label: 'Global FAQs', href: '/admin/settings/faqs', icon: Settings },
@@ -77,19 +81,19 @@ export default function AdminSidebar() {
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={item.href as any}
               title={collapsed ? item.label : undefined}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
                 isActive
-                  ? 'bg-teal-700/10 text-teal-800 font-semibold'
-                  : 'text-ink/75 hover:text-teal-800 hover:bg-cream-deep/60'
+                  ? 'bg-[#9C5247]/10 text-[#9C5247] font-semibold'
+                  : 'text-ink/75 hover:text-[#9C5247] hover:bg-cream-deep/60'
               }`}
             >
               <Icon
                 className={`w-5 h-5 shrink-0 ${
                   isActive
-                    ? 'text-teal-800'
-                    : 'text-ink/40 group-hover:text-teal-700'
+                    ? 'text-[#9C5247]'
+                    : 'text-ink/40 group-hover:text-[#9C5247]'
                 }`}
               />
               {!collapsed && <span className="truncate">{item.label}</span>}

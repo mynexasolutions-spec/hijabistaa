@@ -51,13 +51,6 @@ export default function BrandBanner() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
               </Link>
-
-              <Link
-                href="/lookbook"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full bg-white/70 hover:bg-white text-ink font-body font-semibold text-[15px] tracking-wide border border-gold/30 shadow-sm hover:border-gold transition-all duration-300 hover:scale-[1.02]"
-              >
-                <span>👑 View Lookbook</span>
-              </Link>
             </div>
 
             {/* Trust Metrics / Highlights */}
@@ -84,7 +77,7 @@ export default function BrandBanner() {
             {/* Main Portrait Card */}
             <div className="relative w-full h-[420px] sm:h-[520px] lg:h-[560px] rounded-[32px] sm:rounded-[40px] overflow-hidden shadow-2xl border-[4px] border-white bg-cream-deep group">
               <Image
-                src="/model-cream-hijab.png"
+                src="/assets/images/img_03.jpg"
                 alt="Hijabista Luxury Modest Wear"
                 fill
                 sizes="(max-width: 1024px) 100vw, 550px"
@@ -98,7 +91,7 @@ export default function BrandBanner() {
             {/* Floating Inset Frame (Bottom Left Overlap) */}
             <div className="absolute -bottom-6 -left-4 sm:-left-8 w-[160px] sm:w-[220px] h-[200px] sm:h-[260px] rounded-[24px] sm:rounded-[32px] overflow-hidden border-[4px] border-white shadow-2xl bg-cream hidden sm:block animate-floatSlow z-20 group">
               <Image
-                src="/khimar-handwork.png"
+                src="/assets/images/img_02.webp"
                 alt="Intricate Handwork Details"
                 fill
                 sizes="220px"
