@@ -2,6 +2,7 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import ProfileManager from './_components/ProfileManager'
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
 export const metadata = {
   title: 'My Profile | HIJABISTA',
@@ -11,12 +12,16 @@ export const metadata = {
 export default async function CustomerProfilePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
   
   let adminProfile = null
   let orders = []
   if (user) {
     const { data: profile } = await supabase
-      .from('profiles')
+      .from('customers')
       .select('*')
       .eq('id', user.id)
       .single()

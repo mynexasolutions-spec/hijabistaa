@@ -7,32 +7,32 @@ import { testimonials as baseTestimonials } from "@/lib/data";
 
 // Enhanced rich testimonials list for continuous sliding
 const fallbackTestimonials = [
-  ...baseTestimonials.map((t) => ({ ...t, product: "Double Layer Premium Abaya", rating: 5 })),
+  ...baseTestimonials.map((t) => ({ ...t, product: "Premium Chiffon Hijab", rating: 5 })),
   {
     name: "Dr. Ayesha Tariq",
     city: "Mumbai",
     quote:
-      "I wore the Khimar Handwork to a family wedding and received endless compliments. The drape is lightweight, breathable, and feels like true couture.",
+      "I wore the silk hijab to a family wedding and received endless compliments. The drape is lightweight, breathable, and feels like true couture.",
     initials: "AT",
-    product: "Khimar Handwork — Delicate Detailing",
+    product: "Luxury Silk Hijab — Delicate Detailing",
     rating: 5,
   },
   {
     name: "Mehak Fatima",
     city: "Lucknow",
     quote:
-      "Finally a modest fashion brand in India that delivers exact international magazine quality! The embroidery and fabric texture are simply 10/10.",
+      "Finally a modest fashion brand in India that delivers exact international magazine quality! The fabric texture and drape of the hijabs are simply 10/10.",
     initials: "MF",
-    product: "Luxe Organza Salwar Kameez",
+    product: "Luxe Georgette Wrap",
     rating: 5,
   },
   {
     name: "Sanam Mirza",
     city: "Hyderabad",
     quote:
-      "The WhatsApp team helped me pick the exact right length within 5 minutes. Fast delivery and premium royal packaging. I'm a lifetime customer now!",
+      "The WhatsApp team helped me pick the exact right hijab shade within 5 minutes. Fast delivery and premium royal packaging. I'm a lifetime customer now!",
     initials: "SM",
-    product: "Royal Overhead Jilbab",
+    product: "Everyday Jersey Hijab",
     rating: 5,
   },
   {
@@ -95,7 +95,7 @@ export default function Testimonials({ testimonials = fallbackTestimonials }: { 
   };
 
   return (
-    <section id="reviews" className="relative py-10 md:py-14 overflow-hidden bg-gradient-to-b from-[#FAF6F0] via-[#F4ECE1]/60 to-[#FAF6F0]">
+    <section id="reviews" className="relative py-5 md:py-10 overflow-hidden bg-gradient-to-b from-[#FAF6F0] via-[#F4ECE1]/60 to-[#FAF6F0]">
       {/* Subtle ambient decorative background blur */}
       <div className="pointer-events-none absolute top-1/2 left-1/4 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-gold/10 blur-[150px]" />
       <div className="pointer-events-none absolute bottom-1/4 right-10 w-[400px] h-[400px] rounded-full bg-emerald/10 blur-[140px]" />

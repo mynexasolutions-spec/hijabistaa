@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Eye, Search, Filter } from 'lucide-react'
+import { DeleteOrderButton } from './_components/DeleteOrderButton'
 
 export const metadata = {
   title: 'Orders | Admin Dashboard',
@@ -14,7 +15,7 @@ export default async function AdminOrdersPage() {
     .from('orders')
     .select(`
       *,
-      profiles:user_id (
+      customers:user_id (
         full_name,
         email
       )
@@ -81,8 +82,8 @@ export default async function AdminOrdersPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className="font-medium text-stone-900">{order.profiles?.full_name || 'Guest'}</span>
-                        <span className="text-xs text-stone-500">{order.profiles?.email}</span>
+                        <span className="font-medium text-stone-900">{order.customers?.full_name || 'Guest'}</span>
+                        <span className="text-xs text-stone-500">{order.customers?.email}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -110,13 +111,16 @@ export default async function AdminOrdersPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/admin/orders/${order.id}`}
-                        className="inline-flex items-center justify-center p-2 text-stone-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-colors"
-                        title="View Details"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Link>
+                      <div className="flex items-center justify-end gap-1">
+                        <Link
+                          href={`/admin/orders/${order.id}`}
+                          className="inline-flex items-center justify-center p-2 text-stone-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-colors"
+                          title="View Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Link>
+                        <DeleteOrderButton orderId={order.id} />
+                      </div>
                     </td>
                   </tr>
                 ))

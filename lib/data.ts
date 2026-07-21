@@ -8,7 +8,7 @@ export const SITE = {
   whatsappAlt: "919767529510",
   whatsappMessage: "Hi HIJABISTAA! I'd like to know more about your collection.",
   city: "Mumbai, India",
-  address: "Shop no 19-B & 56, Mohatta Cloth Market, near Hotel HIJABISTAA e Iran, Mumbai 400001",
+  address: "Shop no 19-B & 56 mohatta cloth market near hotel Gulshan e Iran Mumbai 400001",
   hours: "Mon to Sat: 11:30 am to 8:30 pm (Sunday closed)",
   instagram: "__hijabistaa__",
   youtube: "https://youtube.com/@hijabistaa-1229?si=VdmdcKYeobkII47E",
@@ -24,47 +24,33 @@ export type Category = {
 
 export const categories: Category[] = [
   {
-    id: "hijabs",
-    name: "Hijabs",
-    description: "Basic Luxe chiffon, luxury jersey and multi-colour wrap sets",
+    id: "chiffon-hijabs",
+    name: "Chiffon Hijabs",
+    description: "Basic Luxe chiffon, perfect for elegant drapes",
     image: "/hijab-medina.jpg",
-    count: "32 styles",
-  },
-  {
-    id: "hijab-caps",
-    name: "Hijab Caps",
-    description: "Breathable cotton & bamboo under-caps with secure stretch fit",
-    image: "/hijab-muted-sage.jpeg",
-    count: "18 styles",
-  },
-  {
-    id: "shawls",
-    name: "Shawls",
-    description: "Generous drapes and elegant pashmina shawls for every occasion",
-    image: "/abaya-double-layer.png",
-    count: "24 styles",
-  },
-  {
-    id: "hijab-accessories",
-    name: "Hijab Accessories",
-    description: "Magnetic pins, volumizing scrunchies and delicate brooches",
-    image: "/khimar-handwork-1.png",
-    count: "15 styles",
-  },
-  {
-    id: "prayer-wear",
-    name: "Prayer Wear",
-    description: "Ultra-soft, full-coverage 2-piece prayer sets and modest abayas",
-    image: "/jilbab-blue.png",
     count: "12 styles",
   },
   {
-    id: "abaya-accessories",
-    name: "Abaya Accessories",
-    description: "Luxurious belts, modest slip dresses and layered inner slips",
-    image: "/abaya-front-open.png",
-    count: "14 styles",
+    id: "jersey-hijabs",
+    name: "Jersey Hijabs",
+    description: "Luxury jersey, ultra-soft and stretchy",
+    image: "/hijab-muted-sage.jpeg",
+    count: "8 styles",
   },
+  {
+    id: "modal-hijabs",
+    name: "Modal Hijabs",
+    description: "Breathable and lightweight modal blends",
+    image: "/hijab-medina.jpg",
+    count: "5 styles",
+  },
+  {
+    id: "premium-hijabs",
+    name: "Premium Hijabs",
+    description: "Our highest quality fabric selections",
+    image: "/hijab-muted-sage.jpeg",
+    count: "4 styles",
+  }
 ];
 
 export type Product = {
@@ -168,28 +154,28 @@ export const testimonials: Testimonial[] = [
     name: "Sumaiya R.",
     city: "Delhi",
     quote:
-      "The fabric quality is unlike anything I've ordered online before. My abaya drapes beautifully and the stitching is flawless.",
+      "The premium chiffon drapes beautifully and stays in place all day. The quality is exceptional, definitely buying more colors.",
     initials: "SR",
   },
   {
     name: "Afreen K.",
     city: "Noida",
     quote:
-      "Hijabista understands modest fashion doesn't mean boring. Loved the colour options and how fast it reached me.",
+      "Hijabista understands modest fashion perfectly. The jersey hijabs are so soft and breathable, even in the summer heat.",
     initials: "AK",
   },
   {
     name: "Hina M.",
     city: "Gurugram",
     quote:
-      "I messaged on WhatsApp for sizing help and got a reply within minutes. The dress fit perfectly on the first try.",
+      "I ordered the instant hijabs and they are a lifesaver for busy mornings. Fast shipping and excellent packaging too!",
     initials: "HM",
   },
   {
     name: "Zoya A.",
     city: "Faridabad",
     quote:
-      "Ordered three hijabs for Eid and each one felt premium. Definitely my go-to store for modest essentials now.",
+      "The colors are exactly as shown on the website. These modal hijabs feel so luxurious. My new go-to store for modest essentials.",
     initials: "ZA",
   },
 ];

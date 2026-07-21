@@ -25,9 +25,8 @@ export async function getCustomers() {
 
   // Fetch customers
   const { data: customers } = await supabase
-    .from('profiles')
+    .from('customers')
     .select('*')
-    .eq('role', 'customer')
     .order('created_at', { ascending: false })
 
   return customers || []
@@ -51,10 +50,9 @@ export async function toggleCustomerStatus(
   if (profile?.role !== 'admin') return { error: 'Unauthorized' }
 
   const { error } = await supabase
-    .from('profiles')
+    .from('customers')
     .update({ is_active: isActive })
     .eq('id', id)
-    .eq('role', 'customer')
 
   if (error) {
     return { error: error.message }

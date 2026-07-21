@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { createHeroSlide, deleteHeroSlide, toggleHeroSlideStatus } from '@/actions/admin/hero'
 import { Trash2, Plus, Image as ImageIcon, Loader2, Link as LinkIcon, X } from 'lucide-react'
 import { CldUploadWidget } from 'next-cloudinary'
@@ -31,25 +32,44 @@ export function HeroSlideList({
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [customUrl, setCustomUrl] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
+  const router = useRouter()
 
   const handleAddSlide = (imageUrl: string) => {
     if (!imageUrl || !imageUrl.trim()) return
     setIsModalOpen(false)
     setCustomUrl('')
 
-    startTransition(async () => {
-      const res = await createHeroSlide(imageUrl, position)
+    const tempId = `temp-${Date.now()}`
+    // Optimistic UI update
+    setSlides(prev => [...prev, {
+      id: tempId,
+      image_url: imageUrl,
+      is_active: true,
+      display_order: prev.length
+    }])
+
+    // Show processing for 1 second as requested
+    setIsProcessing(true)
+    setTimeout(() => setIsProcessing(false), 1000)
+
+    createHeroSlide(imageUrl, position).then(res => {
       if (res.success) {
-        window.location.reload()
+        router.refresh()
       } else {
         alert(res.error || 'Failed to add slide')
+        setSlides(prev => prev.filter(s => s.id !== tempId))
       }
+    }).catch(() => {
+      alert('An error occurred while adding the slide')
+      setSlides(prev => prev.filter(s => s.id !== tempId))
     })
   }
 
   const handleUploadSuccess = (result: any) => {
-    const imageUrl = result.info.secure_url
-    handleAddSlide(imageUrl)
+    const imageUrl = result?.info?.secure_url
+    if (imageUrl) {
+      handleAddSlide(imageUrl)
+    }
   }
 
   const handleDelete = (id: string) => {

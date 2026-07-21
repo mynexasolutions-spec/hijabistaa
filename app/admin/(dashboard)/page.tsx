@@ -22,9 +22,8 @@ async function getStats() {
         .from('orders')
         .select('id, total_amount', { count: 'exact', head: false }),
       supabase
-        .from('profiles')
-        .select('id', { count: 'exact', head: true })
-        .eq('role', 'customer'),
+        .from('customers')
+        .select('*', { count: 'exact', head: true }),
       supabase
         .from('products')
         .select('id', { count: 'exact', head: true }),

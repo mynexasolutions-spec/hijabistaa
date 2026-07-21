@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react'
 import { useCart } from '@/context/CartContext'
+import { useWishlist } from '@/context/WishlistContext'
 import { useToast } from '@/context/ToastContext'
 import { useRouter } from 'next/navigation'
 import { SITE } from '@/lib/data'
-import { ShoppingBag, CreditCard, Plus, Minus } from 'lucide-react'
+import { ShoppingBag, CreditCard, Plus, Minus, Heart } from 'lucide-react'
 
 export type ProductVariant = {
   id: string
@@ -25,6 +26,7 @@ type ProductItem = {
 
 export default function ProductDetailActions({ product }: { product: ProductItem }) {
   const { addToCart, updateQuantity, cart } = useCart()
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
   const { showToast } = useToast()
   const router = useRouter()
   const [quantity, setQuantity] = useState(1)
@@ -32,14 +34,22 @@ export default function ProductDetailActions({ product }: { product: ProductItem
     product.variants.length > 0 ? product.variants[0] : null
   )
 
-  // Use the selected variant price, or fallback to 1499 safely
-  const currentPrice = Number(selectedVariant?.price || (product as any).price || 1499) || 1499
-  const currentOldPrice = selectedVariant?.original_price ? Number(selectedVariant.original_price) : null
-
   // Find if this exact item+variant is already in cart
   const cartItemId = `${product.id}-${selectedVariant?.id || 'default'}`
   const cartItem = cart.find(item => item.cartItemId === cartItemId)
   const currentQty = cartItem ? cartItem.quantity : 0
+
+  React.useEffect(() => {
+    if (currentQty > 0) {
+      setQuantity(currentQty)
+    } else {
+      setQuantity(1)
+    }
+  }, [currentQty])
+
+  // Use the selected variant price, or fallback to 1499 safely
+  const currentPrice = Number(selectedVariant?.price || (product as any).price || 1499) || 1499
+  const currentOldPrice = selectedVariant?.original_price ? Number(selectedVariant.original_price) : null
 
   const handleAdd = () => {
     if (product.variants.length > 0 && !selectedVariant) {
@@ -52,22 +62,29 @@ export default function ProductDetailActions({ product }: { product: ProductItem
       return
     }
 
-    for (let i = 0; i < quantity; i++) {
-      addToCart({
-        id: product.id,
-        name: product.name,
-        price: currentPrice,
-        image_url: product.image_url,
-        category_name: product.category_name,
-        variant_id: selectedVariant?.id,
-        variant_name: selectedVariant?.variant_name
-      })
+    if (currentQty > 0) {
+      updateQuantity(cartItemId, quantity)
+      showToast(`Cart updated to ${quantity} × ${product.name}!`, "success")
+    } else {
+      for (let i = 0; i < quantity; i++) {
+        addToCart({
+          id: product.id,
+          name: product.name,
+          price: currentPrice,
+          image_url: product.image_url,
+          category_name: product.category_name,
+          variant_id: selectedVariant?.id,
+          variant_name: selectedVariant?.variant_name
+        })
+      }
+      showToast(`${quantity} × ${product.name} added to cart successfully!`, "success")
     }
-    showToast(`${quantity} × ${product.name} added to cart successfully!`, "success")
   }
 
   const handleBuyNow = () => {
-    handleAdd()
+    if (currentQty === 0) {
+      handleAdd()
+    }
     router.push('/checkout')
   }
 
@@ -157,7 +174,7 @@ export default function ProductDetailActions({ product }: { product: ProductItem
             disabled={product.variants.length > 0 && !selectedVariant}
             className="w-full py-3.5 px-4 bg-emerald text-cream font-body font-semibold rounded-full shadow-card hover:bg-emerald-deep transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <ShoppingBag className="w-5 h-5" /> Add to Cart
+            <ShoppingBag className="w-5 h-5" /> {currentQty > 0 ? 'Update Cart' : 'Add to Cart'}
           </button>
 
           <button
@@ -168,6 +185,28 @@ export default function ProductDetailActions({ product }: { product: ProductItem
             <CreditCard className="w-5 h-5" /> Buy Now
           </button>
         </div>
+        
+        <button
+          onClick={(e) => {
+            e.preventDefault()
+            if (isInWishlist(product.id)) {
+              removeFromWishlist(product.id)
+            } else {
+              addToWishlist({
+                id: product.id,
+                name: product.name,
+                price: currentPrice,
+                oldPrice: currentOldPrice || undefined,
+                image_url: product.image_url,
+                category_id: product.category_name,
+              })
+            }
+          }}
+          className="w-full py-3 px-4 border border-cream-line bg-[#FAF7F2] text-ink/70 font-body font-medium rounded-full hover:bg-white hover:text-[#C84B31] hover:border-[#C84B31]/30 transition-all duration-200 flex items-center justify-center gap-2 shadow-sm"
+        >
+          <Heart className={`w-4 h-4 ${isInWishlist(product.id) ? "fill-[#C84B31] text-[#C84B31]" : ""}`} /> 
+          {isInWishlist(product.id) ? "Saved to Wishlist" : "Save to Wishlist"}
+        </button>
       </div>
     </div>
   )

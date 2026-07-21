@@ -74,15 +74,14 @@ export async function register(
     return { error: createError.message }
   }
 
-  // Fallback profile insert in case trigger doesn't exist
+  // Fallback customer insert in case trigger doesn't exist
   try {
     if (newUser?.user) {
-      await supabase.from('profiles').insert({
+      await supabase.from('customers').insert({
         id: newUser.user.id,
         email,
         full_name: fullName,
         phone: phone || null,
-        role: 'customer',
       })
     }
   } catch (e) {
@@ -117,7 +116,7 @@ export async function sendEmailOtp(
 
   if (mode === 'LOGIN') {
     const { data: profile } = await supabase
-      .from('profiles')
+      .from('customers')
       .select('id')
       .eq('email', email)
       .maybeSingle()
@@ -263,11 +262,10 @@ export async function verifyEmailOtp(
     const cookieStore = await cookies()
     cookieStore.set('mock-admin-logged-in', 'true', { path: '/' })
     
-    await supabase.from('profiles').insert({
+    await supabase.from('customers').insert({
       id: 'mock-user-' + Math.random().toString(36).substring(2, 9),
       email,
       full_name: fullName || record.full_name || 'Customer',
-      role: 'customer',
       phone: phone || null
     })
 
@@ -279,10 +277,10 @@ export async function verifyEmailOtp(
   const { createAdminClient } = await import('@/lib/supabase/admin')
   const adminAuth = createAdminClient().auth.admin
 
-  // Check profiles table first
+  // Check customers table first
   let userExists = false
   const { data: existingProfile } = await supabase
-    .from('profiles')
+    .from('customers')
     .select('id')
     .eq('email', email)
     .single()
@@ -323,11 +321,10 @@ export async function verifyEmailOtp(
     } else {
       try {
         if (newUser?.user) {
-          await supabase.from('profiles').insert({
+          await supabase.from('customers').insert({
             id: newUser.user.id,
             email,
             full_name: nameToUse,
-            role: 'customer',
             phone: phone || null
           })
         }
@@ -339,7 +336,7 @@ export async function verifyEmailOtp(
 
   // Custom Cookie Auth Session
   const { data: profile } = await supabase
-    .from('profiles')
+    .from('customers')
     .select('*')
     .eq('email', email)
     .single()
@@ -351,11 +348,10 @@ export async function verifyEmailOtp(
       const userData = (userList?.users as any[])?.find(u => u.email?.toLowerCase() === email.toLowerCase())
       if (userData) {
         const nameToUse = fullName || record.full_name || 'Customer'
-        const { data: insertedProfile } = await supabase.from('profiles').insert({
+        const { data: insertedProfile } = await supabase.from('customers').insert({
           id: userData.id,
           email,
           full_name: nameToUse,
-          role: 'customer',
           phone: phone || null
         }).select('*').single()
         finalProfile = insertedProfile
@@ -374,7 +370,7 @@ export async function verifyEmailOtp(
     id: finalProfile.id,
     email: finalProfile.email,
     full_name: finalProfile.full_name,
-    role: finalProfile.role
+    role: 'customer'
   }), {
     path: '/',
     httpOnly: false,

@@ -7,7 +7,7 @@ export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
 
 export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
 
-// ─── Profiles ────────────────────────────────────────────────
+// ─── Profiles (Admin Only) ───────────────────────────────────
 export interface Profile {
   id: string
   full_name: string
@@ -19,6 +19,16 @@ export interface Profile {
   updated_at: string
 }
 
+// ─── Customers ───────────────────────────────────────────────
+export interface Customer {
+  id: string
+  email: string
+  full_name?: string
+  phone?: string
+  is_active: boolean
+  created_at: string
+}
+
 // ─── Addresses ───────────────────────────────────────────────
 export interface Address {
   id: string
@@ -26,7 +36,6 @@ export interface Address {
   full_name: string
   phone: string
   address_line_1: string
-  address_line_2: string | null
   city: string
   state: string
   postal_code: string
@@ -43,6 +52,7 @@ export interface Category {
   slug: string
   description: string | null
   image_url: string | null
+  parent_id?: string | null
   is_active: boolean
   created_at: string
   updated_at: string

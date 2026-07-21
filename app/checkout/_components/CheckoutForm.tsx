@@ -89,7 +89,7 @@ export default function CheckoutForm({ shipping, isLoggedIn }: { shipping: Shipp
   const [couponSuccess, setCouponSuccess] = useState('')
 
   // Payment Method
-  const [paymentMethod, setPaymentMethod] = useState<'Cash on Delivery' | 'Online Payment (Razorpay)'>('Cash on Delivery')
+  const [paymentMethod, setPaymentMethod] = useState<'Online Payment (Razorpay)'>('Online Payment (Razorpay)')
 
   // Success Modal State
   const [placedOrder, setPlacedOrder] = useState<any>(null)
@@ -126,7 +126,7 @@ export default function CheckoutForm({ shipping, isLoggedIn }: { shipping: Shipp
         supabase.auth.getUser().then(async ({ data }) => {
           if (data?.user) {
             const { data: profileData } = await supabase
-              .from('profiles')
+              .from('customers')
               .select('*')
               .eq('id', data.user.id)
               .single()
@@ -157,8 +157,16 @@ export default function CheckoutForm({ shipping, isLoggedIn }: { shipping: Shipp
 
   // Calculate checkout details
   const subtotal = cartTotal
-  const shippingFee = subtotal >= (shipping.free_threshold ?? 1999) ? 0 : (shipping.flat_rate ?? 99)
-  const codFee = paymentMethod === 'Cash on Delivery' ? (shipping.cod_charge ?? 50) : 0
+  const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0)
+  
+  let shippingFee = 200
+  if (totalQuantity <= 2) {
+    shippingFee = 99
+  } else if (totalQuantity <= 4) {
+    shippingFee = 150
+  }
+  
+  const codFee = 0
   
   let discount = 0
   if (activeCoupon) {
@@ -539,27 +547,7 @@ export default function CheckoutForm({ shipping, isLoggedIn }: { shipping: Shipp
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <label className={`flex flex-col p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-              paymentMethod === 'Cash on Delivery'
-                ? 'border-emerald bg-emerald/5'
-                : 'border-cream-line bg-white hover:border-cream-line-dark'
-            }`}>
-              <input
-                type="radio"
-                name="payment"
-                checked={paymentMethod === 'Cash on Delivery'}
-                onChange={() => setPaymentMethod('Cash on Delivery')}
-                className="sr-only"
-              />
-              <span className="font-bold text-ink text-sm">Cash on Delivery (+₹{shipping.cod_charge ?? 50})</span>
-              <span className="text-xs text-ink/50 mt-1">Pay COD charge & product value at your doorstep.</span>
-            </label>
-
-            <label className={`flex flex-col p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-              paymentMethod === 'Online Payment (Razorpay)'
-                ? 'border-emerald bg-emerald/5'
-                : 'border-cream-line bg-white hover:border-cream-line-dark'
-            }`}>
+            <label className={`flex flex-col p-4 rounded-2xl border-2 cursor-pointer transition-all border-emerald bg-emerald/5`}>
               <input
                 type="radio"
                 name="payment"
@@ -660,12 +648,7 @@ export default function CheckoutForm({ shipping, isLoggedIn }: { shipping: Shipp
                 {shippingFee === 0 ? <span className="text-emerald font-semibold uppercase">Free</span> : `₹${shippingFee}`}
               </span>
             </div>
-            {paymentMethod === 'Cash on Delivery' && (
-              <div className="flex justify-between text-xs">
-                <span className="text-ink/60">COD Charge</span>
-                <span className="font-bold text-ink">₹{codFee}</span>
-              </div>
-            )}
+
             {onlineDiscountAmount > 0 && (
               <div className="flex justify-between text-xs text-emerald font-semibold">
                 <span>Online Payment Discount ({onlineDiscountPercent}%)</span>

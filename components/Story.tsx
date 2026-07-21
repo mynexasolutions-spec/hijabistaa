@@ -22,7 +22,7 @@ export default function Story() {
                 {/* Image 1: Tall Portrait on Left (Spans 7 cols, 2 rows) */}
                 <div className="col-span-7 relative aspect-[3.2/5] rounded-[26px] sm:rounded-[34px] overflow-hidden shadow-xl border border-[#E5DBCB]/80 bg-cream-deep group">
                   <Image
-                    src="https://images.unsplash.com/photo-1571513800374-df1bbe650e56?auto=format&fit=crop&w=1000&q=80"
+                    src="/assets/images/img_11.webp"
                     alt="Hijabista Modest Elegance Story"
                     fill
                     sizes="(max-width: 768px) 55vw, 320px"
@@ -37,7 +37,7 @@ export default function Story() {
                   {/* Image 2: Top Right */}
                   <div className="relative aspect-[1/1.08] w-full rounded-[20px] sm:rounded-[28px] overflow-hidden shadow-lg border border-[#E5DBCB]/80 bg-cream-deep group">
                     <Image
-                      src="/abaya-double-layer.png"
+                      src="/assets/images/img_12.webp"
                       alt="Hijabista Abaya Craftsmanship"
                       fill
                       sizes="(max-width: 768px) 45vw, 220px"
@@ -48,7 +48,7 @@ export default function Story() {
                   {/* Image 3: Bottom Right */}
                   <div className="relative aspect-[1/1.08] w-full rounded-[20px] sm:rounded-[28px] overflow-hidden shadow-lg border border-[#E5DBCB]/80 bg-cream-deep group">
                     <Image
-                      src="/khimar-handwork-1.png"
+                      src="/assets/images/img_13.webp"
                       alt="Refined Modest Detail"
                       fill
                       sizes="(max-width: 768px) 45vw, 220px"
@@ -109,7 +109,7 @@ export default function Story() {
             <Reveal delay={1} className="mt-3 sm:mt-4">
               <h2 className="font-display font-bold text-3xl sm:text-4xl md:text-5xl text-[#2C221E] leading-[1.15] tracking-tight">
                 Rooted in modesty, <br />
-                <span className="italic font-normal text-[#7E3F35]">designed for elegance.</span>
+                <span className="italic font-normal text-[#7E3F35]">Styled with Elegance.</span>
               </h2>
             </Reveal>
 
@@ -123,7 +123,7 @@ export default function Story() {
             {/* Concise Sub-text Paragraph */}
             <Reveal delay={2}>
               <p className="text-[#5D4D46] font-body text-sm sm:text-base md:text-[16px] leading-relaxed max-w-lg mx-auto">
-                Hijabistaa is a Mumbai based modest fashion store where modesty meets elegance. We provide a huge range of modest fashion collection and premium quality hijabs. Our aim is to provide modern Muslim women with premium-quality, comfortable, and versatile hijabs that empower them to feel confident every single day. Hijabistaa is a complete hijab store for your daily wear to your occasional appearance. We provide pan India shipping to provide elegance to our customers all over India and the world.
+              Hijabistaa is a Mumbai-based modest fashion brand offering premium-quality hijabs for everyday wear and special occasions. Our thoughtfully curated collection combines comfort, elegance, and versatility, with pan-India shipping to bring timeless modest fashion to your doorstep.
               </p>
             </Reveal>
 

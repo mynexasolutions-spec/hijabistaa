@@ -34,8 +34,13 @@ export default function ShippingPolicy() {
 
           <h3 className="font-display font-semibold text-xl text-ink mt-8 mb-4">3. Shipping Charges</h3>
           <p>
-            We offer free standard shipping on all orders above ₹3,000. For orders below this amount, a flat shipping fee of ₹150 applies. 
+            We offer tiered shipping rates based on the number of items in your order:
           </p>
+          <ul className="list-disc pl-5 space-y-2">
+            <li><strong>1–2 Hijabs (or items):</strong> ₹99</li>
+            <li><strong>3–4 Hijabs (or items):</strong> ₹150</li>
+            <li><strong>5 or more Hijabs (or items):</strong> ₹200</li>
+          </ul>
 
           <h3 className="font-display font-semibold text-xl text-ink mt-8 mb-4">4. Tracking Your Order</h3>
           <p>

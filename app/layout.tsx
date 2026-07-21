@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { ToastProvider } from "@/context/ToastContext";
+import { WishlistProvider } from "@/context/WishlistContext";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -19,11 +20,11 @@ const bricolage = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  title: "HIJABISTA | Hijab & Scarf — Modest Fashion Elevated",
+  title: "HIJABISTAA | Hijab & Scarf — Modest Fashion Elevated",
   description:
-    "HIJABISTA crafts premium hijabs, scarves and modest essentials with sophisticated detailing, luxurious fabric and timeless silhouettes.",
+    "HIJABISTAA crafts premium hijabs, scarves and modest essentials with sophisticated detailing, luxurious fabric and timeless silhouettes.",
   keywords: [
-    "Hijabista",
+    "Hijabistaa",
     "modest fashion",
     "hijab",
     "scarf",
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
     apple: '/hijabista-logo.png',
   },
   openGraph: {
-    title: "HIJABISTA | Hijab & Scarf — Modest Fashion Elevated",
+    title: "HIJABISTAA | Hijab & Scarf — Modest Fashion Elevated",
     description:
       "Premium hijabs, scarves and modest essentials crafted with sophisticated detailing and luxurious fabric.",
     type: "website",
@@ -50,9 +51,11 @@ export default function RootLayout({
     <html lang="en" className={`${jakarta.variable} ${bricolage.variable}`} suppressHydrationWarning>
       <body className="font-body bg-cream text-ink antialiased" suppressHydrationWarning>
         <ToastProvider>
-          <CartProvider>
-            {children}
-          </CartProvider>
+          <WishlistProvider>
+            <CartProvider>
+              {children}
+            </CartProvider>
+          </WishlistProvider>
         </ToastProvider>
       </body>
     </html>

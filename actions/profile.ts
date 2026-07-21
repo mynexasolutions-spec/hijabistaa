@@ -19,7 +19,7 @@ export async function updateProfile(formData: FormData) {
   }
 
   const { error } = await supabase
-    .from('profiles')
+    .from('customers')
     .update({ 
       full_name: fullName,
       phone: phone || null,
@@ -51,9 +51,9 @@ export async function updateCustomerFullProfile(data: {
     return { success: false, error: 'Unauthorized' }
   }
 
-  // 1. Update profiles table
+  // 1. Update customers table
   const { error: profileError } = await supabase
-    .from('profiles')
+    .from('customers')
     .update({
       full_name: data.fullName,
       phone: data.phone || null

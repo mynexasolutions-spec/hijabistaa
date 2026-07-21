@@ -16,7 +16,7 @@ type Review = {
   is_approved: boolean
   created_at: string
   products?: { name: string } | null
-  profiles?: { full_name: string; email: string } | null
+  customers?: { full_name: string; email: string } | null
 }
 
 export function ReviewList({ initialReviews }: { initialReviews: Review[] }) {
@@ -117,8 +117,8 @@ export function ReviewList({ initialReviews }: { initialReviews: Review[] }) {
                   <div className="text-xs text-stone-500">ID: {review.product_id}</div>
                 </td>
                 <td className="p-4">
-                  <div className="font-medium text-stone-900">{review.profiles?.full_name || 'Verified Buyer'}</div>
-                  <div className="text-xs text-stone-500">{review.profiles?.email || ''}</div>
+                  <div className="font-medium text-stone-900">{review.customers?.full_name || 'Verified Buyer'}</div>
+                  <div className="text-xs text-stone-500">{review.customers?.email || ''}</div>
                 </td>
                 <td className="p-4">
                   <div className="flex items-center gap-0.5">

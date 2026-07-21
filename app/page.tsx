@@ -10,12 +10,15 @@ import BrandBanner from "@/components/BrandBanner";
 import Testimonials from "@/components/Testimonials";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
-import PakistaniEditBanner from "@/components/PakistaniEditBanner";
-import PromoPopup from "@/components/PromoPopup";
+import dynamic from 'next/dynamic';
 import { createClient } from "@/lib/supabase/server";
 import { getHeroSlides, getHeroText } from "@/actions/admin/hero";
 import { getPromoPopupSettings } from "@/actions/admin/homeBanner";
+import PakistaniEditBanner from "@/components/PakistaniEditBanner";
+import InstagramGallery from "@/components/InstagramGallery";
+
+const FloatingWhatsApp = dynamic(() => import('@/components/FloatingWhatsApp'));
+const PromoPopup = dynamic(() => import('@/components/PromoPopup'));
 
 
 // In-memory cache for ultra-fast page rendering during local dev & production
@@ -23,7 +26,7 @@ let homeCache: {
   timestamp: number;
   data: any;
 } | null = null;
-const CACHE_TTL_MS = 1000; // 1 second cache for immediate reflection of admin updates
+const CACHE_TTL_MS = 60000; // 1 minute cache for ultra-fast page rendering
 
 async function safeQuery(promise: Promise<any>, fallback: any, timeoutMs = 2500) {
   try {
@@ -70,7 +73,7 @@ export default async function Home() {
     ),
     safeQuery(
       supabase.from("products").select(`
-        id, name, slug, category_id, is_featured, is_active, color_group_id, badge,
+        id, name, slug, category_id, is_featured, is_active, color_group_id, badge, featured_image_url,
         product_images ( image_url ),
         product_variants ( price, original_price )
       `).eq("is_active", true).eq("is_featured", true).order("created_at", { ascending: false }).limit(4),
@@ -137,13 +140,15 @@ export default async function Home() {
     colorCount: p.color_group_id ? colorGroupCounts[p.color_group_id] || 1 : 1,
   }));
 
+  const staticTestimonials = (await import("@/lib/data")).testimonials;
+
   const data = {
     heroSlides,
     heroText,
     categories,
     formattedProducts,
     formattedSalwarKameez,
-    testimonials,
+    testimonials: staticTestimonials,
     promoPopupSettings
   };
 
@@ -178,6 +183,7 @@ function renderHomePage({
       <BrandBanner />
       <Story />
       <Testimonials testimonials={testimonials || undefined} />
+      <InstagramGallery />
       <Footer />
       <FloatingWhatsApp />
     </main>

@@ -7,6 +7,8 @@ import Image from "next/image";
 import Reveal from "./Reveal";
 import { SITE } from "@/lib/data";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
+import { Heart } from "lucide-react";
 
 interface Product {
   id: string;
@@ -53,6 +55,7 @@ export default function Products({
   isHomePage?: boolean
 }) {
   const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const router = useRouter();
 
   return (
@@ -62,7 +65,7 @@ export default function Products({
           <Reveal className="text-center max-w-xl mx-auto">
             <div className="eyebrow justify-center inline-flex items-center gap-2">
               <span className="h-px w-6 bg-gold" />
-              Featured Pieces
+              Featured Products
               <span className="h-px w-6 bg-gold" />
             </div>
             <h2 className="section-heading mt-4">{title}</h2>
@@ -75,7 +78,7 @@ export default function Products({
             <Reveal className="text-center w-full mb-4">
               <div className="eyebrow justify-center inline-flex items-center gap-2">
                 <span className="h-px w-6 bg-gold" />
-                Featured Pieces
+                Featured Products
                 <span className="h-px w-6 bg-gold" />
               </div>
             </Reveal>
@@ -104,8 +107,8 @@ export default function Products({
             return (
               <Reveal key={p.id} delay={(i % 5) as any} className={isHomePage ? "flex-none w-[calc(50%-0.5rem)] md:w-[calc(34.833%-1rem)] lg:w-[calc(21.5%-1.2rem)]" : "flex-none w-[calc(50%-0.5rem)] md:w-[calc(33.333%-1rem)] lg:w-[calc(20%-1.2rem)]"}>
                 <div className="lift group bg-[#FAF7F2] rounded-2xl md:rounded-[20px] p-2.5 md:p-3 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-md border border-cream-line/80 h-full flex flex-col transition-all duration-300">
-                  <Link href={`/shop/${p.slug || p.id}`} className="relative aspect-[4/4] rounded-xl bg-cream-deep/20 block shrink-0">
-                    <div className="absolute inset-0 overflow-hidden rounded-xl z-0">
+                  <div className="relative aspect-[4/4] rounded-xl bg-cream-deep/20 block shrink-0">
+                    <Link href={`/shop/${p.slug || p.id}`} className="absolute inset-0 overflow-hidden rounded-xl z-0">
                       <Image
                         src={p.image_url || (p as any).image || "/image.png"}
                         alt={p.name || "Product"}
@@ -113,13 +116,35 @@ export default function Products({
                         sizes="(max-width: 768px) 50vw, 320px"
                         className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
                       />
-                    </div>
+                    </Link>
                     {p.badge && (
                       <span className="absolute top-[5px] right-[2%] z-10 bg-[#6E3416] text-white text-[9px] md:text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-xl shadow-sm pointer-events-none">
                         {p.badge}
                       </span>
                     )}
-                  </Link>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        if (isInWishlist(p.id)) {
+                          removeFromWishlist(p.id)
+                        } else {
+                          addToWishlist({
+                            id: p.id,
+                            name: p.name,
+                            price: p.price,
+                            oldPrice: p.oldPrice,
+                            image_url: p.image_url,
+                            category_id: p.category_id,
+                            badge: p.badge,
+                          })
+                        }
+                      }}
+                      className="absolute top-2 left-2 z-10 p-2 bg-white/80 backdrop-blur-sm rounded-full text-ink/60 hover:text-[#C84B31] hover:bg-white transition-all shadow-sm"
+                      aria-label={isInWishlist(p.id) ? "Remove from wishlist" : "Add to wishlist"}
+                    >
+                      <Heart className={`w-4 h-4 ${isInWishlist(p.id) ? "fill-[#C84B31] text-[#C84B31]" : ""}`} />
+                    </button>
+                  </div>
                   <div className="flex flex-col flex-1 pt-3 px-0.5">
                     <div className="flex-1">
                       <Link href={`/shop/${p.slug || p.id}`} className="hover:text-emerald transition-colors block">

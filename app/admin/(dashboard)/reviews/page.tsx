@@ -20,7 +20,7 @@ export default async function AdminReviewsPage() {
         .select(`
           *,
           products ( name ),
-          profiles ( full_name, email )
+          customers ( full_name, email )
         `)
         .order('created_at', { ascending: false }),
       supabase
@@ -59,7 +59,7 @@ export default async function AdminReviewsPage() {
       const localRev = dbData.reviews.map((r: any) => ({
         ...r,
         products: { name: r.product_name || r.product_id },
-        profiles: { full_name: r.customer_name || 'Verified Customer', email: 'customer@hijabistaa.com' }
+        customers: { full_name: r.customer_name || 'Verified Customer', email: 'customer@hijabistaa.com' }
       }))
       const allMap = new Map()
       ;[...reviews, ...localRev].forEach(r => {
