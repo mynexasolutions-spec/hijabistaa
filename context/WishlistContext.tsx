@@ -10,6 +10,8 @@ export type WishlistItem = {
   image_url: string
   category_id?: string
   badge?: string
+  rating?: number
+  reviewCount?: number
 }
 
 type WishlistContextType = {

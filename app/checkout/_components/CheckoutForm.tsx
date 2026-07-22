@@ -500,7 +500,7 @@ export default function CheckoutForm({ shipping, isLoggedIn }: { shipping: Shipp
                   maxLength={50}
                   value={profile.city}
                   onChange={(e) => setProfile({ ...profile, city: e.target.value })}
-                  placeholder="e.g. New Delhi"
+                  placeholder="e.g. Mumbai"
                   className="w-full px-4 py-2.5 rounded-xl border border-cream-line bg-cream/20 text-ink focus:outline-none focus:ring-2 focus:ring-emerald/20 focus:border-emerald transition-all text-sm"
                 />
               </div>
@@ -514,7 +514,7 @@ export default function CheckoutForm({ shipping, isLoggedIn }: { shipping: Shipp
                   maxLength={50}
                   value={profile.state}
                   onChange={(e) => setProfile({ ...profile, state: e.target.value })}
-                  placeholder="e.g. Delhi"
+                  placeholder="e.g. Maharashtra"
                   className="w-full px-4 py-2.5 rounded-xl border border-cream-line bg-cream/20 text-ink focus:outline-none focus:ring-2 focus:ring-emerald/20 focus:border-emerald transition-all text-sm"
                 />
               </div>

@@ -10,7 +10,7 @@ const defaultHomeReviews: Testimonial[] = [
   {
     id: 'mock-1',
     name: 'Sumaiya R.',
-    city: 'Delhi',
+    city: 'Mumbai',
     quote: "The premium chiffon drapes beautifully and stays in place all day. The quality is exceptional, definitely buying more colors.",
     initials: 'SR',
     product: 'Premium Chiffon Hijab',

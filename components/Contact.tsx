@@ -256,13 +256,13 @@ export default function Contact() {
 
             <details className="group bg-white rounded-2xl border border-cream-line shadow-sm overflow-hidden open:bg-cream-deep/30 transition-colors duration-300">
               <summary className="font-display font-semibold text-ink text-[15px] md:text-base px-6 py-5 cursor-pointer flex justify-between items-center outline-none list-none hover:text-emerald transition-colors">
-                What is your return policy?
+                What is your return & refund policy?
                 <span className="w-8 h-8 rounded-full bg-cream-deep flex items-center justify-center transition-transform group-open:rotate-180 group-open:bg-emerald/10 group-open:text-emerald text-ink/50">
                   <svg fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="20"><polyline points="6 9 12 15 18 9"/></svg>
                 </span>
               </summary>
               <div className="px-6 pb-6 text-ink/70 text-sm md:text-[15px] leading-relaxed border-t border-cream-line/50 mx-6 pt-4">
-                We offer a 7-day return window for items that are unused, unwashed, and have all original tags intact. Please refer to our Refund & Cancellation policy for full details.
+                We do not offer returns or refunds on any products. All sales are final.
               </div>
             </details>
 

@@ -1,6 +1,5 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 
 export const metadata = {
   title: 'Shipping & Delivery Policy | HIJABISTA',
@@ -24,10 +23,10 @@ export default function ShippingPolicy() {
 
           <h3 className="font-display font-semibold text-xl text-ink mt-8 mb-4">2. Shipping Timelines</h3>
           <p>
-            We proudly ship across Pan-India from our studio in Delhi NCR. 
+            We proudly ship across Pan-India from our studio in Mumbai. 
           </p>
           <ul className="list-disc pl-5 space-y-2">
-            <li><strong>Delhi NCR:</strong> 1-2 business days after dispatch.</li>
+            <li><strong>Mumbai:</strong> 1-2 business days after dispatch.</li>
             <li><strong>Metro Cities:</strong> 3-4 business days after dispatch.</li>
             <li><strong>Rest of India:</strong> 5-7 business days after dispatch.</li>
           </ul>
@@ -50,7 +49,6 @@ export default function ShippingPolicy() {
       </div>
 
       <Footer />
-      <FloatingWhatsApp />
     </main>
   );
 }

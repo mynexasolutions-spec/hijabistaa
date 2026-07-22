@@ -1,6 +1,5 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 
 export const metadata = {
   title: 'Return & Refund Policy | HIJABISTA',
@@ -17,30 +16,24 @@ export default function ReturnAndRefundPolicy() {
         <div className="prose prose-emerald prose-sm md:prose-base text-ink/80 max-w-none space-y-6">
           <p>Last updated: {new Date().toLocaleDateString('en-IN')}</p>
           
-          <h3 className="font-display font-semibold text-xl text-ink mt-8 mb-4">1. Eligibility for Returns</h3>
+          <h3 className="font-display font-semibold text-xl text-ink mt-8 mb-4">1. No Return & No Refund Policy</h3>
           <p>
-            We offer a 7-day return window for items that are unused, unwashed, and have all original tags intact. The items must be returned in their original packaging. If 7 days have passed since your purchase was delivered, unfortunately, we cannot offer you a refund or exchange.
+            We do not offer returns or refunds on any products once an order has been placed and delivered. All sales are final. Please make sure to check product specifications, measurements, and details before completing your order.
           </p>
 
-          <h3 className="font-display font-semibold text-xl text-ink mt-8 mb-4">2. Return Process</h3>
+          <h3 className="font-display font-semibold text-xl text-ink mt-8 mb-4">2. Damaged or Incorrect Products</h3>
           <p>
-            To initiate a return, please contact our support team via email or WhatsApp with your order number and the reason for the return. Our team will review your request and provide you with further instructions for sending the item(s) back to us.
-          </p>
-          
-          <h3 className="font-display font-semibold text-xl text-ink mt-8 mb-4">3. Refunds</h3>
-          <p>
-            Once your return is received and inspected, we will notify you of the approval or rejection of your refund. If approved, your refund will be processed and automatically applied to your original method of payment within 5-7 business days. Shipping charges are non-refundable.
+            In case you receive a damaged, defective, or incorrect product, please inform our support team within 24 hours of delivery via WhatsApp or email along with unboxing video/photo proof. We will review your request and process an exchange if verified.
           </p>
 
-          <h3 className="font-display font-semibold text-xl text-ink mt-8 mb-4">4. Non-Returnable Items</h3>
+          <h3 className="font-display font-semibold text-xl text-ink mt-8 mb-4">3. Order Cancellations</h3>
           <p>
-            Custom orders, personalized items, sale items, and worn or washed items are non-returnable and non-refundable unless they are received damaged or defective.
+            Orders once dispatched cannot be cancelled. If you need to request cancellation prior to dispatch, please contact support immediately.
           </p>
         </div>
       </div>
 
       <Footer />
-      <FloatingWhatsApp />
     </main>
   );
 }

@@ -51,7 +51,7 @@ export function TestimonialForm({ onSuccess }: { onSuccess?: () => void }) {
           <input
             type="text"
             name="city"
-            placeholder="e.g. Delhi"
+            placeholder="e.g. Mumbai"
             className="w-full px-3 py-2 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-700 focus:border-transparent"
           />
         </div>

@@ -1,9 +1,16 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { IconWhatsapp } from "./Icons";
 import { SITE } from "@/lib/data";
 
 export default function FloatingWhatsApp() {
+  const pathname = usePathname();
+
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
+
   return (
     <a
       href={`https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(

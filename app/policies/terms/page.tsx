@@ -1,6 +1,5 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 
 export const metadata = {
   title: 'Terms & Conditions | HIJABISTA',
@@ -44,7 +43,6 @@ export default function TermsConditions() {
       </div>
 
       <Footer />
-      <FloatingWhatsApp />
     </main>
   );
 }
