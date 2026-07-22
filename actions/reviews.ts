@@ -121,4 +121,47 @@ export async function submitReview(
   }
 }
 
+export async function getReviewCounts(): Promise<Record<string, number>> {
+  const counts: Record<string, number> = {}
+  const processedIds = new Set<string>()
+
+  // 1. Fetch from Supabase
+  try {
+    const supabase = await createClient()
+    const { data: sbReviews } = await supabase
+      .from('reviews')
+      .select('id, product_id, is_approved')
+      .filter('is_approved', 'neq', false)
+
+    if (sbReviews) {
+      sbReviews.forEach((r: any) => {
+        if (r.id && r.product_id) {
+          processedIds.add(r.id)
+          counts[r.product_id] = (counts[r.product_id] || 0) + 1
+        }
+      })
+    }
+  } catch (e) {}
+
+  // 2. Fetch from local lib/db.json
+  try {
+    const fs = await import('fs')
+    const path = await import('path')
+    const dbPath = path.join(process.cwd(), 'lib', 'db.json')
+    const dbData = JSON.parse(fs.readFileSync(dbPath, 'utf8'))
+    if (Array.isArray(dbData.reviews)) {
+      dbData.reviews.forEach((r: any) => {
+        if (r && r.id && r.product_id && r.is_approved !== false) {
+          if (!processedIds.has(r.id)) {
+            processedIds.add(r.id)
+            counts[r.product_id] = (counts[r.product_id] || 0) + 1
+          }
+        }
+      })
+    }
+  } catch (e) {}
+
+  return counts
+}
+
 

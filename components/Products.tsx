@@ -21,6 +21,7 @@ interface Product {
   price: number;
   oldPrice?: number;
   colorCount?: number;
+  reviewCount?: number;
 }
 
 interface Category {
@@ -29,16 +30,7 @@ interface Category {
 }
 
 function formatINR(n: any) {
-  return `₹${(Number(n) || 1499).toLocaleString("en-IN")}`;
-}
-
-function getReviewCount(id: string) {
-  if (!id) return 128;
-  let sum = 0;
-  for (let i = 0; i < id.length; i++) {
-    sum += id.charCodeAt(i);
-  }
-  return (sum % 140) + 85;
+  return `₹${(Number(n) || 0).toLocaleString("en-IN")}`;
 }
 
 export default function Products({ 
@@ -136,6 +128,8 @@ export default function Products({
                             image_url: p.image_url,
                             category_id: p.category_id,
                             badge: p.badge,
+                            rating: p.rating || 5,
+                            reviewCount: p.reviewCount ?? 0,
                           })
                         }
                       }}
@@ -173,7 +167,7 @@ export default function Products({
                         {"★".repeat(5)}
                       </div>
                       <span className="text-ink/55 text-[12px] font-medium">
-                        ({getReviewCount(p.id)})
+                        ({p.reviewCount ?? 0})
                       </span>
                     </div>
                     <div className="mt-3.5 grid grid-cols-1 gap-2">

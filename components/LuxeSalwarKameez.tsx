@@ -8,6 +8,7 @@ import { useCart } from "@/context/CartContext";
 
 interface Product {
   id: string;
+  slug?: string;
   name: string;
   image_url: string;
   badge?: string;
@@ -15,19 +16,11 @@ interface Product {
   price: number;
   oldPrice?: number;
   colorCount?: number;
+  reviewCount?: number;
 }
 
 function formatINR(n: number) {
-  return `₹${n.toLocaleString("en-IN")}`;
-}
-
-function getReviewCount(id: string) {
-  if (!id) return 128;
-  let sum = 0;
-  for (let i = 0; i < id.length; i++) {
-    sum += id.charCodeAt(i);
-  }
-  return (sum % 140) + 85;
+  return `₹${(Number(n) || 0).toLocaleString("en-IN")}`;
 }
 
 export default function LuxeSalwarKameez({ products = [] }: { products?: Product[] }) {
@@ -59,7 +52,7 @@ export default function LuxeSalwarKameez({ products = [] }: { products?: Product
             <Reveal key={p.id} delay={(i % 5) as any} className="flex-none w-[calc(50%-0.5rem)] md:w-[calc(34.833%-1rem)] lg:w-[calc(21.5%-1.2rem)]">
               <div className="lift group bg-[#FAF7F2] rounded-2xl md:rounded-[20px] p-2.5 md:p-3 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-md border border-cream-line/80 h-full flex flex-col transition-all duration-300">
                 <div className="relative aspect-[4/4.3] rounded-xl bg-cream-deep/20 block shrink-0">
-                  <div className="absolute inset-0 overflow-hidden rounded-xl z-0">
+                  <Link href={`/shop/${p.slug || p.id}`} className="absolute inset-0 overflow-hidden rounded-xl z-0">
                     <Image
                       src={p.image_url || (p as any).image || "/luxe-salwar-kameez.png"}
                       alt={p.name || "Salwar Kameez"}
@@ -67,7 +60,7 @@ export default function LuxeSalwarKameez({ products = [] }: { products?: Product
                       sizes="(max-width: 768px) 50vw, 320px"
                       className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
                     />
-                  </div>
+                  </Link>
                   {p.badge && (
                     <span className="absolute top-[5px] right-[2%] z-10 bg-[#6E3416] text-white text-[9px] md:text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-xl shadow-sm pointer-events-none">
                       {p.badge}
@@ -76,7 +69,7 @@ export default function LuxeSalwarKameez({ products = [] }: { products?: Product
                 </div>
                 <div className="flex flex-col flex-1 pt-3 px-0.5">
                   <div className="flex-1">
-                    <Link href={`/shop/${p.id}`} className="hover:text-emerald transition-colors block">
+                    <Link href={`/shop/${p.slug || p.id}`} className="hover:text-emerald transition-colors block">
                       <h3 className="font-display font-medium text-ink text-[14px] md:text-[15.5px] leading-snug line-clamp-2">
                         {p.name}
                       </h3>
@@ -102,7 +95,7 @@ export default function LuxeSalwarKameez({ products = [] }: { products?: Product
                       {"★".repeat(5)}
                     </div>
                     <span className="text-ink/55 text-[12px] font-medium">
-                      ({getReviewCount(p.id)})
+                      ({p.reviewCount ?? 0})
                     </span>
                   </div>
                   <div className="mt-3.5 grid grid-cols-1 gap-2">

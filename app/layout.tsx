@@ -4,6 +4,7 @@ import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -54,6 +55,7 @@ export default function RootLayout({
           <WishlistProvider>
             <CartProvider>
               {children}
+              <FloatingWhatsApp />
             </CartProvider>
           </WishlistProvider>
         </ToastProvider>

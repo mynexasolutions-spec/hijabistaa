@@ -1,7 +1,7 @@
 export const SITE = {
   name: "HIJABISTAA",
   tagline: "Where Modesty Meets Elegance",
-  email: "hijabsitaa01@gmail.com",
+  email: "hijabistaa01@gmail.com",
   phone: "+91 88283 49655",
   phoneHref: "+918828349655",
   whatsapp: "918828349655",
@@ -152,7 +152,7 @@ export type Testimonial = {
 export const testimonials: Testimonial[] = [
   {
     name: "Sumaiya R.",
-    city: "Delhi",
+    city: "Mumbai",
     quote:
       "The premium chiffon drapes beautifully and stays in place all day. The quality is exceptional, definitely buying more colors.",
     initials: "SR",
@@ -191,20 +191,20 @@ export const lookbook = [
 
 export const usps = [
   {
-    title: "Premium Fabric",
-    description: "Crepe, nida & chiffon sourced for drape, breathability and a fabric that lasts seasons, not weeks.",
+    title: " Premuim breathable fabric",
+    description: " We source high-quality materials—from everyday breathable cotton and airy chiffon to luxury modal—that drape elegantly and keep you cool all day long.",
   },
   {
-    title: "Handcrafted Detailing",
-    description: "Botanical embroidery and finishing touches stitched by hand, inspired by our own logo's line-art.",
+    title: "curated colour pallet",
+    description: "We offer a huge range of beautiful, universally flattering neutrals and vibrant tones to complement every skin tone and outfit.",
   },
   {
-    title: "Modest, Never Plain",
-    description: "Considered colour stories and silhouettes so modesty never means settling on style.",
+    title: "All day stay put fit",
+    description: "No more constant adjustments. Our meticulously designed cuts, generous lengths, and optional grip undercaps ensure your hijab stays securely in place from morning to night",
   },
   {
     title: "Pan-India Shipping",
-    description: "Dispatched from Delhi NCR with tracked delivery across India, and easy size-exchange support.",
+    description: "Dispatched from Mumbai with tracked delivery across India, and easy size-exchange support.",
   },
 ];
 

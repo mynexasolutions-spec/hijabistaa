@@ -14,10 +14,10 @@ import dynamic from 'next/dynamic';
 import { createClient } from "@/lib/supabase/server";
 import { getHeroSlides, getHeroText } from "@/actions/admin/hero";
 import { getPromoPopupSettings } from "@/actions/admin/homeBanner";
+import { getReviewCounts } from "@/actions/reviews";
 import PakistaniEditBanner from "@/components/PakistaniEditBanner";
 import InstagramGallery from "@/components/InstagramGallery";
 
-const FloatingWhatsApp = dynamic(() => import('@/components/FloatingWhatsApp'));
 const PromoPopup = dynamic(() => import('@/components/PromoPopup'));
 
 
@@ -26,7 +26,7 @@ let homeCache: {
   timestamp: number;
   data: any;
 } | null = null;
-const CACHE_TTL_MS = 60000; // 1 minute cache for ultra-fast page rendering
+const CACHE_TTL_MS = 0; // Set to 0 to ensure live fresh product data and prices
 
 async function safeQuery(promise: Promise<any>, fallback: any, timeoutMs = 2500) {
   try {
@@ -59,7 +59,8 @@ export default async function Home() {
     products,
     salwarKameezProducts,
     testimonials,
-    promoPopupSettings
+    promoPopupSettings,
+    reviewCounts
   ] = await Promise.all([
     getHeroSlides().then(slides => slides.filter((s: any) => s.is_active)),
     getHeroText(),
@@ -73,7 +74,7 @@ export default async function Home() {
     ),
     safeQuery(
       supabase.from("products").select(`
-        id, name, slug, category_id, is_featured, is_active, color_group_id, badge, featured_image_url,
+        id, name, slug, category_id, is_featured, is_active, color_group_id, badge, price, oldPrice, featured_image_url,
         product_images ( image_url ),
         product_variants ( price, original_price )
       `).eq("is_active", true).eq("is_featured", true).order("created_at", { ascending: false }).limit(4),
@@ -81,17 +82,18 @@ export default async function Home() {
     ),
     safeQuery(
       supabase.from("products").select(`
-        id, name, price, oldPrice, badge, rating, featured_image_url, color_group_id,
+        id, name, slug, price, oldPrice, badge, rating, featured_image_url, color_group_id,
         product_images ( image_url ),
         product_variants ( price, original_price )
-      `).eq("category_id", "salwar_kameez").eq("is_active", true).order("created_at", { ascending: false }).limit(4),
+      `).or("category_id.eq.salwar_kameez,category_id.eq.salwar-kameez").eq("is_active", true).order("created_at", { ascending: false }).limit(4),
       []
     ),
     safeQuery(
       supabase.from("testimonials").select("*").eq("is_active", true).order("display_order", { ascending: true }),
       undefined
     ),
-    getPromoPopupSettings()
+    getPromoPopupSettings(),
+    getReviewCounts()
   ]);
 
   const productCounts = (allProducts || []).reduce((acc: any, p: any) => {
@@ -119,25 +121,29 @@ export default async function Home() {
 
   const formattedProducts = (products || []).map((p: any) => ({
     id: p.id,
+    slug: p.slug,
     name: p.name,
     category_id: p.category_id,
     image_url: p.product_images?.[0]?.image_url || p.featured_image_url || p.image_url || p.image || "/image.png",
-    price: p.product_variants?.[0]?.price || p.price || 0,
+    price: Number(p.product_variants?.[0]?.price || p.price || 0) || 0,
     oldPrice: p.product_variants?.[0]?.original_price || p.oldPrice || undefined,
     badge: p.badge,
     rating: p.rating || 5,
     colorCount: p.color_group_id ? colorGroupCounts[p.color_group_id] || 1 : 1,
+    reviewCount: reviewCounts[p.id] || 0,
   }));
 
   const formattedSalwarKameez = (salwarKameezProducts || []).map((p: any) => ({
     id: p.id,
+    slug: p.slug,
     name: p.name,
     image_url: p.product_images?.[0]?.image_url || p.featured_image_url || p.image_url || p.image || "/luxe-salwar-kameez.png",
-    price: p.product_variants?.[0]?.price || p.price || 0,
+    price: Number(p.product_variants?.[0]?.price || p.price || 0) || 0,
     oldPrice: p.product_variants?.[0]?.original_price || p.oldPrice || undefined,
     badge: p.badge,
     rating: p.rating || 5,
     colorCount: p.color_group_id ? colorGroupCounts[p.color_group_id] || 1 : 1,
+    reviewCount: reviewCounts[p.id] || 0,
   }));
 
   const staticTestimonials = (await import("@/lib/data")).testimonials;
@@ -185,7 +191,6 @@ function renderHomePage({
       <Testimonials testimonials={testimonials || undefined} />
       <InstagramGallery />
       <Footer />
-      <FloatingWhatsApp />
     </main>
   );
 }

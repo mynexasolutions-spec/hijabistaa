@@ -1,6 +1,5 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 
 export const metadata = {
   title: 'Privacy Policy | HIJABISTA',
@@ -44,7 +43,6 @@ export default function PrivacyPolicy() {
       </div>
 
       <Footer />
-      <FloatingWhatsApp />
     </main>
   );
 }

@@ -1,6 +1,5 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 
 export const metadata = {
   title: 'Frequently Asked Questions | HIJABISTA',
@@ -9,15 +8,15 @@ export const metadata = {
 const faqs = [
   {
     question: "How long does shipping take?",
-    answer: "All standard orders are processed within 2-3 business days. Delivery within Delhi NCR takes 1-2 business days, Metro Cities take 3-4 business days, and the Rest of India takes 5-7 business days after dispatch."
+    answer: "All standard orders are processed within 2-3 business days. Delivery within Mumbai takes 1-2 business days, Metro Cities take 3-4 business days, and the Rest of India takes 5-7 business days after dispatch."
   },
   {
     question: "What are the shipping charges?",
     answer: "Shipping charges are tiered based on the number of items: ₹99 for 1-2 items, ₹150 for 3-4 items, and ₹200 for 5 or more items."
   },
   {
-    question: "Do you accept returns?",
-    answer: "Yes, we offer a 7-day return window for items that are unused, unwashed, and have all original tags intact. Custom orders and sale items are non-returnable."
+    question: "Do you accept returns or refunds?",
+    answer: "No, we do not offer returns or refunds. All sales are final once an order has been placed."
   },
   {
     question: "What payment methods are available?",
@@ -52,7 +51,6 @@ export default function FAQPage() {
       </div>
 
       <Footer />
-      <FloatingWhatsApp />
     </main>
   );
 }

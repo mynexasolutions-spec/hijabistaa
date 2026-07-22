@@ -21,6 +21,9 @@ type ProductItem = {
   name: string
   image_url: string
   category_name?: string
+  price?: number
+  oldPrice?: number | null
+  original_price?: number | null
   variants: ProductVariant[]
 }
 
@@ -31,7 +34,7 @@ export default function ProductDetailActions({ product }: { product: ProductItem
   const router = useRouter()
   const [quantity, setQuantity] = useState(1)
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
-    product.variants.length > 0 ? product.variants[0] : null
+    product.variants && product.variants.length > 0 ? product.variants[0] : null
   )
 
   // Find if this exact item+variant is already in cart
@@ -47,12 +50,20 @@ export default function ProductDetailActions({ product }: { product: ProductItem
     }
   }, [currentQty])
 
-  // Use the selected variant price, or fallback to 1499 safely
-  const currentPrice = Number(selectedVariant?.price || (product as any).price || 1499) || 1499
-  const currentOldPrice = selectedVariant?.original_price ? Number(selectedVariant.original_price) : null
+  // Precise price and MRP calculation
+  const variantPrice = selectedVariant && selectedVariant.price != null && Number(selectedVariant.price) > 0 ? Number(selectedVariant.price) : null
+  const variantOldPrice = selectedVariant && selectedVariant.original_price != null && Number(selectedVariant.original_price) > 0 ? Number(selectedVariant.original_price) : null
+
+  const basePrice = product.price != null && Number(product.price) > 0 ? Number(product.price) : 0
+  const baseOldPrice = product.oldPrice != null && Number(product.oldPrice) > 0 
+    ? Number(product.oldPrice) 
+    : (product.original_price != null && Number(product.original_price) > 0 ? Number(product.original_price) : null)
+
+  const currentPrice = variantPrice ?? basePrice
+  const currentOldPrice = variantOldPrice ?? baseOldPrice
 
   const handleAdd = () => {
-    if (product.variants.length > 0 && !selectedVariant) {
+    if (product.variants && product.variants.length > 0 && !selectedVariant) {
       showToast("Please select a size/variant first.", "error")
       return
     }
@@ -95,11 +106,11 @@ export default function ProductDetailActions({ product }: { product: ProductItem
       <div className="flex items-center justify-between pt-3 border-t border-cream-line/50">
         <div className="flex items-baseline gap-3">
           <span className="font-display font-bold text-3xl text-emerald">
-            ₹{(Number(currentPrice) || 1499).toLocaleString('en-IN')}
+            ₹{Number(currentPrice).toLocaleString('en-IN')}
           </span>
-          {currentOldPrice && (
+          {currentOldPrice != null && Number(currentOldPrice) > currentPrice && (
             <span className="text-ink/40 text-lg line-through">
-              ₹{(Number(currentOldPrice) || 0).toLocaleString('en-IN')}
+              ₹{Number(currentOldPrice).toLocaleString('en-IN')}
             </span>
           )}
         </div>

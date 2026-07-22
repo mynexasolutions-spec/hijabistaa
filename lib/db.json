@@ -166,14 +166,14 @@
   ],
   "reviews": [
     {
-      "id": "1adac549-ac42-49b8-9c9b-4023a11e555b",
-      "product_id": "bc18b644-b8d0-4c63-ba4d-7f7e0db91185",
-      "user_id": "56de790d-cb2e-489e-848b-9e2d2816683a",
-      "customer_name": "demos demo_1",
-      "rating": 5,
-      "comment": "hiiii",
+      "id": "d2a69011-e1cc-4f98-8983-c0c4ba49f79b",
+      "product_id": "e1e34b5e-f0ef-46c6-94b3-c25f0aed9f40",
+      "user_id": "34162bf9-dc7b-4fdf-ac33-8fcdf784e1c5",
+      "customer_name": "Admin",
+      "rating": 4,
+      "comment": "best",
       "is_approved": true,
-      "created_at": "2026-07-19T18:42:43.777Z"
+      "created_at": "2026-07-22T09:34:12.634Z"
     },
     {
       "id": "b9e63555-cf1c-4c97-8213-cf148ddbff8a",

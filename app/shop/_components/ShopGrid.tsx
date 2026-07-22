@@ -19,6 +19,7 @@ type Product = {
   rating: number
   is_active: boolean
   colorCount?: number
+  reviewCount?: number
 }
 
 type Category = {
@@ -31,15 +32,6 @@ type ShopGridProps = {
   initialProducts: Product[]
   categories: Category[]
   selectedCategory: string
-}
-
-function getReviewCount(id: string) {
-  if (!id) return 128;
-  let sum = 0;
-  for (let i = 0; i < id.length; i++) {
-    sum += id.charCodeAt(i);
-  }
-  return (sum % 140) + 85;
 }
 
 export default function ShopGrid({ initialProducts, categories, selectedCategory }: ShopGridProps) {
@@ -308,6 +300,8 @@ export default function ShopGrid({ initialProducts, categories, selectedCategory
                             image_url: p.image_url,
                             category_id: p.category_id,
                             badge: p.badge,
+                            rating: p.rating || 5,
+                            reviewCount: p.reviewCount ?? 0,
                           })
                         }
                       }}
@@ -348,7 +342,7 @@ export default function ShopGrid({ initialProducts, categories, selectedCategory
                         {"★".repeat(5)}
                       </div>
                       <span className="text-ink/55 text-[11px] md:text-[12px] font-medium">
-                        ({getReviewCount(p.id)})
+                        ({p.reviewCount ?? 0})
                       </span>
                     </div>
 

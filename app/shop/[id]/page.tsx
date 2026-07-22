@@ -20,7 +20,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     const { data } = await supabase
       .from("products")
       .select(`
-        id, name, slug, category_id, is_active, badge, rating, short_description, description, featured_image_url,
+        id, name, slug, category_id, is_active, badge, rating, price, oldPrice, short_description, description, featured_image_url,
         product_images ( image_url ),
         product_variants ( id, variant_name, price, original_price, stock_quantity ),
         product_information ( label, value, display_order ),
@@ -39,7 +39,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       const { data: slugProduct } = await supabase
         .from("products")
         .select(`
-          id, name, slug, category_id, is_active, badge, rating, short_description, description, featured_image_url,
+          id, name, slug, category_id, is_active, badge, rating, price, oldPrice, short_description, description, featured_image_url,
           product_images ( image_url ),
           product_variants ( id, variant_name, price, original_price, stock_quantity ),
           product_information ( label, value, display_order ),
@@ -197,7 +197,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     let query = supabase
       .from("products")
       .select(`
-        id, name, slug, category_id, is_active, badge, rating, featured_image_url,
+        id, name, slug, category_id, is_active, badge, rating, price, oldPrice, featured_image_url,
         product_images ( image_url ),
         product_variants ( price, original_price )
       `)
@@ -220,7 +220,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     category_id: p.category_id,
     image_url: p.featured_image_url || (p.product_images?.[0]?.image_url) || "/image.png",
     badge: p.badge,
-    price: Number(p.product_variants?.[0]?.price || p.price || 1499) || 1499,
+    price: Number(p.product_variants?.[0]?.price || p.price || 0) || 0,
     oldPrice: p.product_variants?.[0]?.original_price || p.oldPrice || undefined
   }));
 
@@ -295,6 +295,14 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     }
   }
 
+  // Calculate real-time average rating and total review count
+  const reviewCount = reviews.length;
+  const avgRatingNumber = reviewCount > 0
+    ? reviews.reduce((acc: number, r: any) => acc + (Number(r.rating) || 5), 0) / reviewCount
+    : (Number(productData.rating) || 5.0);
+  const displayRating = avgRatingNumber.toFixed(1);
+  const starCount = Math.min(5, Math.max(1, Math.round(avgRatingNumber)));
+
   return (
     <>
       <Header />
@@ -328,14 +336,17 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                   {productData.name}
                 </h1>
                 
-                {productData.rating && (
-                  <div className="mt-3 flex items-center gap-1.5 text-sm text-ink/60">
-                    <div className="flex text-gold">★★★★★</div>
-                    <span className="font-semibold text-ink">{productData.rating} ★</span>
-                    <span className="text-ink/30">|</span>
-                    <span>Verified</span>
+                {/* Dynamic Real-Time Rating & Review Count */}
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-ink/70">
+                  <div className="flex text-gold text-base tracking-tight gap-0.5">
+                    {'★'.repeat(starCount)}
                   </div>
-                )}
+                  <span className="font-bold text-ink">{displayRating} ★</span>
+                  <span className="text-ink/30">|</span>
+                  <a href="#reviews" className="text-emerald font-semibold hover:underline transition-colors">
+                    {reviewCount} {reviewCount === 1 ? 'Review' : 'Reviews'}
+                  </a>
+                </div>
               </div>
 
               {/* Color Options */}
@@ -374,6 +385,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                   name: productData.name,
                   image_url: images[0] || "/image.png",
                   category_name: categoryName,
+                  price: productData.price != null ? Number(productData.price) : undefined,
+                  oldPrice: productData.oldPrice != null ? Number(productData.oldPrice) : (productData.original_price != null ? Number(productData.original_price) : undefined),
                   variants: variants
                 }}
               />
@@ -459,7 +472,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         )}
 
         {/* Product Reviews */}
-        <section className="mt-2 pt-6 border-t border-cream-line bg-cream">
+        <section id="reviews" className="mt-2 pt-6 border-t border-cream-line bg-cream scroll-mt-24">
           <div className="max-w-wrap mx-auto px-5 md:px-8">
             <div className="text-center max-w-xl mx-auto mb-10">
               <div className="eyebrow justify-center inline-flex items-center gap-2">

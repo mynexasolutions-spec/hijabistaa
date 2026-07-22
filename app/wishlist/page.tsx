@@ -10,15 +10,6 @@ import { useCart } from '@/context/CartContext'
 import { useToast } from '@/context/ToastContext'
 import { Trash2, ShoppingBag, Heart, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react'
 
-function getReviewCount(id: string) {
-  if (!id) return 128
-  let sum = 0
-  for (let i = 0; i < id.length; i++) {
-    sum += id.charCodeAt(i)
-  }
-  return (sum % 140) + 85
-}
-
 export default function WishlistPage() {
   const { wishlist, removeFromWishlist, clearWishlist } = useWishlist()
   const { addToCart } = useCart()
@@ -43,14 +34,14 @@ export default function WishlistPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-cream pt-28 pb-20 md:pt-36 md:pb-24">
+      <main className="min-h-screen bg-cream pt-32 pb-20 md:pt-44 lg:pt-48 md:pb-24">
         <div className="max-w-wrap mx-auto px-5 md:px-8">
           
           {/* Header & Title Bar */}
           <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-6 mb-8 md:mb-10 pb-6 border-b border-cream-line/80">
             <div className="flex flex-col items-center md:items-start text-center md:text-left">
               <div className="eyebrow inline-flex items-center gap-2 mb-2">
-                <span className="h-px w-6 md:w-8 bg-gold/70" />
+                <span className="h-px w-6 md:w-8 bg-gold/70" /> 
                 Saved Collection
                 <span className="h-px w-6 md:w-8 bg-gold/70" />
               </div>
@@ -165,11 +156,8 @@ export default function WishlistPage() {
 
                     {/* Info Section */}
                     <div className="flex flex-col flex-1 pt-3.5 px-0.5">
-                      {/* Title & Category */}
+                      {/* Title */}
                       <div className="flex-1">
-                        <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-ink/40 mb-1">
-                          {item.category_id || 'Modest Fashion'}
-                        </div>
                         <Link href={`/shop/${item.id}`} className="hover:text-emerald transition-colors block">
                           <h3 className="font-display font-semibold text-ink text-[13px] md:text-[15.5px] leading-snug line-clamp-2 min-h-[2.25rem]">
                             {item.name}
@@ -180,10 +168,13 @@ export default function WishlistPage() {
                       {/* Rating Stars */}
                       <div className="mt-2 flex items-center gap-1.5">
                         <div className="flex items-center text-[#B8622A] text-[11px] md:text-[13px] tracking-tight gap-0.5">
-                          {'★'.repeat(5)}
+                          {'★'.repeat(Math.round(item.rating || 5))}
                         </div>
-                        <span className="text-ink/50 text-[10px] md:text-[11px] font-medium">
-                          ({getReviewCount(item.id)})
+                        <span className="text-ink/80 text-[11px] md:text-[12px] font-semibold">
+                          {item.rating || 5} ★
+                        </span>
+                        <span className="text-ink/40 text-[10px] md:text-[11px] font-medium">
+                          ({item.reviewCount ?? 0})
                         </span>
                       </div>
 

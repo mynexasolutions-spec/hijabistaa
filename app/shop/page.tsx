@@ -2,6 +2,7 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import ShopGrid from './_components/ShopGrid'
 import { createClient } from "@/lib/supabase/server";
+import { getReviewCounts } from "@/actions/reviews";
 import Image from 'next/image'
 
 export const metadata = {
@@ -38,7 +39,10 @@ export default async function ShopPage({
     productsQuery = productsQuery.eq('is_featured', true);
   }
 
-  const { data: productsData } = await productsQuery;
+  const [{ data: productsData }, reviewCounts] = await Promise.all([
+    productsQuery,
+    getReviewCounts()
+  ]);
 
   const { data: categoriesData } = await supabase
     .from("categories")
@@ -61,6 +65,7 @@ export default async function ShopPage({
     badge: p.badge,
     rating: p.rating || 5,
     colorCount: p.color_group_id ? colorGroupCounts[p.color_group_id] || 1 : 1,
+    reviewCount: reviewCounts[p.id] || 0,
   }));
 
   const categories = (categoriesData && categoriesData.length > 0 && categoriesData.some((c: any) => c.id === "hijab-caps" || c.id === "shawls"))

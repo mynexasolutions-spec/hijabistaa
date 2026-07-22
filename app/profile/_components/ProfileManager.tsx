@@ -183,7 +183,7 @@ export default function ProfileManager({ adminProfile, orders = [] }: { adminPro
                   required
                   value={profile.city}
                   onChange={(e) => handleChange('city', e.target.value)}
-                  placeholder="e.g. New Delhi"
+                  placeholder="e.g. Mumbai"
                   className="w-full px-4 py-2.5 rounded-xl border border-cream-line bg-cream/20 text-ink focus:outline-none focus:ring-2 focus:ring-emerald/20 focus:border-emerald transition-all text-[15px]"
                 />
               </div>
@@ -197,7 +197,7 @@ export default function ProfileManager({ adminProfile, orders = [] }: { adminPro
                   required
                   value={profile.state}
                   onChange={(e) => handleChange('state', e.target.value)}
-                  placeholder="e.g. Delhi"
+                  placeholder="e.g. Maharashtra"
                   className="w-full px-4 py-2.5 rounded-xl border border-cream-line bg-cream/20 text-ink focus:outline-none focus:ring-2 focus:ring-emerald/20 focus:border-emerald transition-all text-[15px]"
                 />
               </div>

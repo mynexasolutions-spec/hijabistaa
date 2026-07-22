@@ -1,7 +1,6 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Story from "@/components/Story";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import BotanicalDivider from "@/components/BotanicalDivider";
 
 export const metadata = {
@@ -39,7 +38,6 @@ export default function AboutPage() {
       </div>
 
       <Footer />
-      <FloatingWhatsApp />
     </main>
   );
 }
