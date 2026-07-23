@@ -1,11 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import type { Metadata } from 'next'
-import ProductForm from '../_components/ProductForm'
+import ProductForm, { ProductSubmitButton } from '../_components/ProductForm'
 import ProductInfoEditor from '../_components/ProductInfoEditor'
 import ProductFaqEditor from '../_components/ProductFaqEditor'
 import { ProductVariantsEditor } from '../_components/ProductVariantsEditor'
 import { ProductImagesEditor } from '../_components/ProductImagesEditor'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -33,14 +33,7 @@ export default async function NewProductPage() {
           <ArrowLeft className="w-4 h-4" />
           Back to Products
         </Link>
-        <button
-          type="submit"
-          form="product-form"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold rounded-xl shadow-md shadow-orange-500/20 hover:shadow-lg hover:from-orange-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500/40 transition-all duration-200"
-        >
-          <Save className="w-4 h-4" />
-          Create Product
-        </button>
+        <ProductSubmitButton formId="product-form" isEditing={false} />
       </div>
 
       <div>
@@ -78,14 +71,7 @@ export default async function NewProductPage() {
             <ArrowLeft className="w-4 h-4" />
             Back to Products
           </Link>
-          <button
-            type="submit"
-            form="product-form"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold rounded-xl shadow-md shadow-orange-500/20 hover:shadow-lg hover:from-orange-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500/40 transition-all duration-200"
-          >
-            <Save className="w-4 h-4" />
-            Create Product
-          </button>
+          <ProductSubmitButton formId="product-form" isEditing={false} />
         </div>
       </div>
     </div>

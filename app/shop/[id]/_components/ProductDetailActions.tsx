@@ -5,8 +5,7 @@ import { useCart } from '@/context/CartContext'
 import { useWishlist } from '@/context/WishlistContext'
 import { useToast } from '@/context/ToastContext'
 import { useRouter } from 'next/navigation'
-import { SITE } from '@/lib/data'
-import { ShoppingBag, CreditCard, Plus, Minus, Heart } from 'lucide-react'
+import { ShoppingBag, CreditCard, Plus, Minus, Heart, Check } from 'lucide-react'
 
 export type ProductVariant = {
   id: string
@@ -14,6 +13,14 @@ export type ProductVariant = {
   price: number
   original_price: number | null
   stock_quantity: number
+}
+
+export type ProductColorVariant = {
+  id: string
+  color_name: string
+  color_hex?: string | null
+  images: string[]
+  stock_quantity?: number | null
 }
 
 type ProductItem = {
@@ -24,79 +31,170 @@ type ProductItem = {
   price?: number
   oldPrice?: number | null
   original_price?: number | null
-  variants: ProductVariant[]
+  size?: string | null
+  variants?: ProductVariant[]
+  colorVariants?: ProductColorVariant[]
 }
 
-export default function ProductDetailActions({ product }: { product: ProductItem }) {
+interface ProductDetailActionsProps {
+  product: ProductItem
+  selectedColors?: ProductColorVariant[]
+  onSelectColor?: (color: ProductColorVariant) => void
+}
+
+export default function ProductDetailActions({
+  product,
+  selectedColors = [],
+  onSelectColor,
+}: ProductDetailActionsProps) {
   const { addToCart, updateQuantity, cart } = useCart()
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
   const { showToast } = useToast()
   const router = useRouter()
   const [quantity, setQuantity] = useState(1)
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
-    product.variants && product.variants.length > 0 ? product.variants[0] : null
-  )
 
-  // Find if this exact item+variant is already in cart
-  const cartItemId = `${product.id}-${selectedVariant?.id || 'default'}`
-  const cartItem = cart.find(item => item.cartItemId === cartItemId)
-  const currentQty = cartItem ? cartItem.quantity : 0
+  const colorVariants = product.colorVariants || []
+
+  // Parse multiple sizes from product.size (comma-separated) AND product.variants
+  const availableSizes = React.useMemo(() => {
+    const list: string[] = []
+    if (product.size) {
+      const parts = product.size
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s && s !== '180 × 2m' && s !== '180 * 2 m')
+      parts.forEach(p => {
+        if (!list.includes(p)) list.push(p)
+      })
+    }
+    if (product.variants && product.variants.length > 0) {
+      product.variants.forEach(v => {
+        const vName = v.variant_name?.trim()
+        if (vName && !list.includes(vName)) {
+          list.push(vName)
+        }
+      })
+    }
+    return list
+  }, [product.size, product.variants])
+
+  const [selectedSize, setSelectedSize] = useState<string>(availableSizes[0] || '')
 
   React.useEffect(() => {
-    if (currentQty > 0) {
+    if (availableSizes.length > 0 && (!selectedSize || !availableSizes.includes(selectedSize))) {
+      setSelectedSize(availableSizes[0])
+    }
+  }, [availableSizes])
+
+  // If a single item is in cart (when no colors or 1 color), we could sync quantity.
+  // For multiple colors, we'll just default to 1 and let them add more.
+  const isSingleSelection = selectedColors.length <= 1;
+  const singleCartItemId = `${product.id}-${selectedColors[0]?.color_name || 'default'}-${selectedSize || 'default'}`;
+  const cartItem = isSingleSelection ? cart.find(item => item.cartItemId === singleCartItemId) : null;
+  const currentQty = cartItem ? cartItem.quantity : 0;
+
+  React.useEffect(() => {
+    if (currentQty > 0 && isSingleSelection) {
       setQuantity(currentQty)
     } else {
       setQuantity(1)
     }
-  }, [currentQty])
+  }, [currentQty, isSingleSelection])
 
-  // Precise price and MRP calculation
-  const variantPrice = selectedVariant && selectedVariant.price != null && Number(selectedVariant.price) > 0 ? Number(selectedVariant.price) : null
-  const variantOldPrice = selectedVariant && selectedVariant.original_price != null && Number(selectedVariant.original_price) > 0 ? Number(selectedVariant.original_price) : null
+  // Precise price and MRP calculation (checking selected size variant)
+  const selectedVariant = React.useMemo(() => {
+    if (!selectedSize || !product.variants || product.variants.length === 0) return null
+    return product.variants.find(v => v.variant_name?.toLowerCase() === selectedSize.toLowerCase()) || null
+  }, [selectedSize, product.variants])
 
   const basePrice = product.price != null && Number(product.price) > 0 ? Number(product.price) : 0
   const baseOldPrice = product.oldPrice != null && Number(product.oldPrice) > 0 
     ? Number(product.oldPrice) 
     : (product.original_price != null && Number(product.original_price) > 0 ? Number(product.original_price) : null)
 
-  const currentPrice = variantPrice ?? basePrice
-  const currentOldPrice = variantOldPrice ?? baseOldPrice
+  const currentPrice = selectedVariant?.price != null && Number(selectedVariant.price) > 0
+    ? Number(selectedVariant.price)
+    : basePrice
+
+  const currentOldPrice = selectedVariant?.original_price != null && Number(selectedVariant.original_price) > 0
+    ? Number(selectedVariant.original_price)
+    : baseOldPrice
 
   const handleAdd = () => {
-    if (product.variants && product.variants.length > 0 && !selectedVariant) {
-      showToast("Please select a size/variant first.", "error")
+    if (colorVariants.length > 0 && selectedColors.length === 0) {
+      showToast("Please select at least one color.", "error")
       return
     }
 
-    if (selectedVariant && selectedVariant.stock_quantity < quantity) {
-      showToast("Not enough stock available for this variant.", "error")
-      return
-    }
-
-    if (currentQty > 0) {
-      updateQuantity(cartItemId, quantity)
-      showToast(`Cart updated to ${quantity} × ${product.name}!`, "success")
-    } else {
-      for (let i = 0; i < quantity; i++) {
-        addToCart({
-          id: product.id,
-          name: product.name,
-          price: currentPrice,
-          image_url: product.image_url,
-          category_name: product.category_name,
-          variant_id: selectedVariant?.id,
-          variant_name: selectedVariant?.variant_name
-        })
+    if (colorVariants.length > 0) {
+      // Loop through each selected color and add to cart
+      selectedColors.forEach(color => {
+        const specificCartItemId = `${product.id}-${color.color_name}-${selectedSize || 'default'}`
+        const specificCartItem = cart.find(item => item.cartItemId === specificCartItemId)
+        
+        if (specificCartItem && selectedColors.length === 1) {
+          updateQuantity(specificCartItemId, quantity)
+        } else {
+          for (let i = 0; i < quantity; i++) {
+            addToCart({
+              id: product.id,
+              name: product.name,
+              price: currentPrice,
+              image_url: product.image_url,
+              category_name: product.category_name,
+              color_name: color.color_name,
+              variant_name: selectedSize || product.size || undefined
+            })
+          }
+        }
+      })
+      const colorNames = selectedColors.map(c => c.color_name).join(', ')
+      if (selectedColors.length === 1 && currentQty > 0) {
+        showToast(`Cart updated to ${quantity} × ${product.name}!`, "success")
+      } else {
+        showToast(`${quantity} × ${product.name} (${colorNames}) ${selectedSize ? `[${selectedSize}]` : ''} added to cart!`, "success")
       }
-      showToast(`${quantity} × ${product.name} added to cart successfully!`, "success")
+    } else {
+      if (currentQty > 0) {
+        updateQuantity(singleCartItemId, quantity)
+        showToast(`Cart updated to ${quantity} × ${product.name}!`, "success")
+      } else {
+        for (let i = 0; i < quantity; i++) {
+          addToCart({
+            id: product.id,
+            name: product.name,
+            price: currentPrice,
+            image_url: product.image_url,
+            category_name: product.category_name,
+            color_name: undefined,
+            variant_name: selectedSize || product.size || undefined
+          })
+        }
+        showToast(`${quantity} × ${product.name} ${selectedSize ? `[${selectedSize}]` : ''} added to cart!`, "success")
+      }
     }
   }
 
   const handleBuyNow = () => {
-    if (currentQty === 0) {
+    if (currentQty === 0 || selectedColors.length > 1) {
       handleAdd()
     }
     router.push('/checkout')
+  }
+
+  // Determine Stock Status
+  let isStockKnown = false
+  let isInStock = true
+  
+  if (selectedVariant && selectedVariant.stock_quantity != null) {
+    isStockKnown = true
+    isInStock = selectedVariant.stock_quantity > 0
+  } else if (selectedColors.length > 0 && selectedColors[selectedColors.length - 1].stock_quantity != null) {
+    isStockKnown = true
+    isInStock = selectedColors[selectedColors.length - 1].stock_quantity! > 0
+  } else {
+    isStockKnown = true
+    isInStock = true
   }
 
   return (
@@ -114,36 +212,95 @@ export default function ProductDetailActions({ product }: { product: ProductItem
             </span>
           )}
         </div>
+        
+        {isStockKnown && (
+          <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${isInStock ? 'bg-emerald/10 text-emerald' : 'bg-red-50 text-red-600 border border-red-100'}`}>
+            {isInStock ? "In Stock" : "Out of Stock"}
+          </span>
+        )}
       </div>
 
-      {/* Variant Selector */}
-      {product.variants.length > 0 && (
-        <div className="space-y-4">
+      {/* 1. Color Selector (Styled matching screenshot: circular swatches with checkmarks & centered labels below) */}
+      {colorVariants.length > 0 && (
+        <div className="space-y-3 pt-2 border-t border-cream-line/40">
           <div className="flex justify-between items-center">
-            <span className="text-[13px] uppercase tracking-wider font-bold text-ink/70">Select Size / Variant</span>
-            {selectedVariant && (
-              <span className="text-xs font-semibold text-emerald">{selectedVariant.stock_quantity > 0 ? "In Stock" : "Out of Stock"}</span>
-            )}
+            <h3 className="text-sm font-bold text-ink tracking-tight">
+              Select Color(s): <span className="font-medium text-ink/80">{selectedColors.map(c => c.color_name).join(', ')}</span>
+            </h3>
           </div>
-          
-          <div className="flex flex-wrap gap-3">
-            {product.variants.map(variant => (
-              <button
-                key={variant.id}
-                onClick={() => setSelectedVariant(variant)}
-                disabled={variant.stock_quantity <= 0}
-                className={`relative min-w-[3.5rem] h-12 px-4 rounded-xl text-[15px] font-bold flex items-center justify-center transition-all duration-300 border-2 overflow-hidden ${
-                  selectedVariant?.id === variant.id
-                    ? "border-emerald text-emerald bg-emerald/5 shadow-sm scale-[1.02]"
-                    : "border-cream-line text-ink/80 hover:border-emerald/40 hover:bg-emerald/5 hover:text-emerald"
-                } ${variant.stock_quantity <= 0 ? "opacity-40 cursor-not-allowed bg-cream-deep text-ink/40 border-cream-line line-through" : ""}`}
-              >
-                {variant.variant_name}
-                {selectedVariant?.id === variant.id && (
-                  <div className="absolute top-0 right-0 w-3 h-3 bg-emerald rounded-bl-xl" />
-                )}
-              </button>
-            ))}
+
+          <div className="flex flex-wrap items-start gap-4 sm:gap-6 pt-1">
+            {colorVariants.map((c) => {
+              const isSelected = selectedColors.some(sc => sc.id === c.id || sc.color_name === c.color_name)
+              const hexVal = (c.color_hex || '#E6DAC4').toLowerCase()
+              const isLightColor = hexVal === '#ffffff' || hexVal === '#fff' || hexVal === 'white' || hexVal === '#f7e7ce' || hexVal === '#e6dac4'
+
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => onSelectColor && onSelectColor(c)}
+                  title={c.color_name}
+                  className="flex flex-col items-center group focus:outline-none"
+                >
+                  <div
+                    className={`relative w-11 h-11 rounded-full p-[2.5px] transition-all duration-200 flex items-center justify-center ${
+                      isSelected
+                        ? 'border-2 border-ink shadow-md scale-105'
+                        : 'border border-stone-200 bg-white shadow-sm hover:scale-105 hover:border-stone-300'
+                    }`}
+                  >
+                    <span
+                      className="w-full h-full rounded-full border border-black/10 flex items-center justify-center shadow-inner transition-transform"
+                      style={{ backgroundColor: c.color_hex || '#E6DAC4' }}
+                    >
+                      {isSelected && (
+                        <Check className={`w-3.5 h-3.5 stroke-[2.5] ${isLightColor ? 'text-ink' : 'text-white'}`} />
+                      )}
+                    </span>
+                  </div>
+                  <span className={`text-[12px] font-medium mt-1.5 text-center transition-colors ${isSelected ? 'text-ink font-semibold' : 'text-ink/70 group-hover:text-ink'}`}>
+                    {c.color_name}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 2. Size Selector (Supports multiple sizes entered by admin) */}
+      {availableSizes.length > 0 && (
+        <div className="space-y-2.5 pt-2 border-t border-cream-line/40">
+          <div className="flex justify-between items-center">
+            <span className="text-[13px] uppercase tracking-wider font-bold text-ink/70">
+              Select Size
+              {selectedSize && (
+                <span className="ml-2 font-semibold text-emerald normal-case">
+                  ({selectedSize})
+                </span>
+              )}
+            </span>
+          </div>
+
+          <div className="flex flex-wrap gap-2.5">
+            {availableSizes.map((sz) => {
+              const isSelected = selectedSize === sz
+              return (
+                <button
+                  key={sz}
+                  type="button"
+                  onClick={() => setSelectedSize(sz)}
+                  className={`min-w-[3.5rem] h-10 px-4 rounded-xl text-xs font-bold flex items-center justify-center transition-all duration-200 border-2 ${
+                    isSelected
+                      ? 'border-emerald text-emerald bg-emerald/5 shadow-sm scale-[1.02] ring-2 ring-emerald/20'
+                      : 'border-cream-line text-ink/80 hover:border-emerald/40 hover:text-emerald bg-white shadow-xs'
+                  }`}
+                >
+                  {sz}
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
@@ -151,10 +308,10 @@ export default function ProductDetailActions({ product }: { product: ProductItem
       {/* Actions */}
       <div className="space-y-4 pt-4 border-t border-cream-line/50">
         {/* Info text if in cart */}
-        {currentQty > 0 && (
+        {currentQty > 0 && selectedColors.length <= 1 && (
           <div className="flex">
             <span className="text-xs font-semibold text-emerald bg-emerald/5 border border-emerald/10 px-3 py-1.5 rounded-full">
-              {currentQty} currently in your cart
+              {currentQty} currently in your cart {selectedColors.length === 1 ? `(${selectedColors[0].color_name})` : ''}
             </span>
           </div>
         )}
@@ -182,15 +339,15 @@ export default function ProductDetailActions({ product }: { product: ProductItem
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
           <button
             onClick={handleAdd}
-            disabled={product.variants.length > 0 && !selectedVariant}
+            disabled={colorVariants.length > 0 && selectedColors.length === 0}
             className="w-full py-3.5 px-4 bg-emerald text-cream font-body font-semibold rounded-full shadow-card hover:bg-emerald-deep transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <ShoppingBag className="w-5 h-5" /> {currentQty > 0 ? 'Update Cart' : 'Add to Cart'}
+            <ShoppingBag className="w-5 h-5" /> {currentQty > 0 && selectedColors.length <= 1 ? 'Update Cart' : 'Add to Cart'}
           </button>
 
           <button
             onClick={handleBuyNow}
-            disabled={product.variants.length > 0 && !selectedVariant}
+            disabled={colorVariants.length > 0 && selectedColors.length === 0}
             className="w-full py-3.5 px-4 border-2 border-emerald text-emerald font-body font-semibold rounded-full hover:bg-emerald hover:text-cream transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <CreditCard className="w-5 h-5" /> Buy Now

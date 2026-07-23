@@ -10,6 +10,7 @@ export type CartItem = {
   image_url: string
   quantity: number
   category_name?: string
+  color_name?: string
   variant_id?: string
   variant_name?: string
 }
@@ -51,7 +52,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [cart])
 
   const addToCart = (item: Omit<CartItem, 'quantity' | 'cartItemId'>) => {
-    const cartItemId = `${item.id}-${item.variant_id || 'default'}`
+    const cartItemId = `${item.id}-${item.color_name || 'default'}-${item.variant_id || 'default'}`
     setCart((prev) => {
       const existing = prev.find((i) => i.cartItemId === cartItemId)
       if (existing) {

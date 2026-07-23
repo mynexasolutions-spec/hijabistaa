@@ -57,6 +57,7 @@ export async function createOrder(addressId: string, paymentMethod: string, cart
       variant_id: item.variant_id || item.id,
       product_name: item.name,
       variant_name: item.variant_name || 'Default',
+      color_name: item.color_name || null,
       price_at_purchase: price,
       quantity: quantity,
       line_total: lineTotal
@@ -332,6 +333,7 @@ export async function processCheckout(
   const cartInserts = items.map(item => ({
     user_id: user.id,
     variant_id: item.variant_id || item.id, // Use variant_id directly, fallback to product id if needed
+    color_name: item.color_name || null,
     quantity: item.quantity
   }))
   
