@@ -43,12 +43,19 @@ CREATE TABLE IF NOT EXISTS products (
   price NUMERIC NOT NULL,
   "oldPrice" NUMERIC,
   image_url TEXT,
+  featured_image_url TEXT,
   badge TEXT,
   rating NUMERIC DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
   is_featured BOOLEAN DEFAULT false,
   description TEXT,
   short_description TEXT,
+  size TEXT,
+  seo_title TEXT,
+  seo_description TEXT,
+  color_group_id TEXT,
+  color_name TEXT,
+  color_hex TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -172,6 +179,19 @@ CREATE TABLE IF NOT EXISTS product_variants (
   price NUMERIC NOT NULL,
   original_price NUMERIC,
   stock_quantity INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 13.1 Product Colors Table
+CREATE TABLE IF NOT EXISTS product_colors (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  product_id TEXT REFERENCES products(id) ON DELETE CASCADE,
+  color_name TEXT NOT NULL,
+  color_hex TEXT,
+  images TEXT[] DEFAULT '{}',
+  stock_quantity INTEGER DEFAULT 0,
+  display_order INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -180,6 +200,7 @@ CREATE TABLE IF NOT EXISTS cart_items (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   variant_id UUID,
+  color_name TEXT,
   quantity INTEGER NOT NULL DEFAULT 1,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -192,6 +213,7 @@ CREATE TABLE IF NOT EXISTS order_items (
   variant_id UUID,
   product_name TEXT NOT NULL,
   variant_name TEXT,
+  color_name TEXT,
   price_at_purchase NUMERIC NOT NULL,
   quantity INTEGER NOT NULL,
   line_total NUMERIC NOT NULL,
@@ -290,3 +312,16 @@ VALUES
   ('sub-102', 'afreen.fatima@gmail.com', 'subscribed', NOW()),
   ('sub-103', 'zoya.shaikh@hotmail.com', 'subscribed', NOW())
 ON CONFLICT (email) DO NOTHING;
+
+-- ─── Migration SQL Script for Product Sizes & Variants ─────────
+ALTER TABLE products ADD COLUMN IF NOT EXISTS size TEXT;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS seo_title TEXT;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS seo_description TEXT;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS color_group_id TEXT;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS color_name TEXT;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS color_hex TEXT;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS featured_image_url TEXT;
+
+ALTER TABLE product_variants ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
+
+NOTIFY pgrst, 'reload schema';

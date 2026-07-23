@@ -79,6 +79,7 @@ export interface Product {
   is_featured: boolean
   seo_title: string | null
   seo_description: string | null
+  size?: string | null
   created_at: string
   updated_at: string
 }
@@ -94,6 +95,18 @@ export interface ProductVariant {
   is_active: boolean
   created_at: string
   updated_at: string
+}
+
+// ─── Product Color Variants ──────────────────────────────────
+export interface ProductColor {
+  id: string
+  product_id: string
+  color_name: string
+  color_hex?: string | null
+  images: string[]
+  stock_quantity?: number | null
+  display_order?: number
+  created_at?: string
 }
 
 // ─── Product Images ──────────────────────────────────────────

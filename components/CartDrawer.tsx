@@ -82,8 +82,8 @@ export default function CartDrawer({ isOpen, onClose, shipping }: CartDrawerProp
                       <h4 className="font-semibold text-ink text-sm leading-tight line-clamp-1">
                         {item.name}
                       </h4>
-                      <p className="text-[11px] text-ink/40 uppercase tracking-wider font-semibold mt-0.5">
-                        {item.category_name} {item.variant_name && `• Size: ${item.variant_name}`}
+                      <p className="text-[11px] text-ink/50 uppercase tracking-wider font-semibold mt-0.5">
+                        {item.category_name} {item.color_name && `• Color: ${item.color_name}`} {item.variant_name && `• Size: ${item.variant_name}`}
                       </p>
                     </div>
 

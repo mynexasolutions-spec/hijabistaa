@@ -26,7 +26,7 @@ let homeCache: {
   timestamp: number;
   data: any;
 } | null = null;
-const CACHE_TTL_MS = 0; // Set to 0 to ensure live fresh product data and prices
+const CACHE_TTL_MS = 1000 * 60 * 5; // Set to 5 minutes for ultra-fast page rendering
 
 async function safeQuery(promise: Promise<any>, fallback: any, timeoutMs = 2500) {
   try {

@@ -1,4 +1,247 @@
 {
+  "product_variants": [],
+  "product_colors": [
+    {
+      "id": "col-p2-black",
+      "product_id": "p2",
+      "color_name": "Black",
+      "color_hex": "#000000",
+      "images": [
+        "/jilbab-black.png",
+        "/khimar-one-layer-black.jpg"
+      ],
+      "stock_quantity": 50,
+      "display_order": 0
+    },
+    {
+      "id": "col-p2-white",
+      "product_id": "p2",
+      "color_name": "White",
+      "color_hex": "#FFFFFF",
+      "images": [
+        "/hijab-medina.jpg",
+        "/hijab-muted-sage.jpeg"
+      ],
+      "stock_quantity": 40,
+      "display_order": 1
+    },
+    {
+      "id": "col-p2-beige",
+      "product_id": "p2",
+      "color_name": "Beige",
+      "color_hex": "#E6DAC4",
+      "images": [
+        "/hijab-medina.jpg",
+        "/abaya-front-open.png"
+      ],
+      "stock_quantity": 30,
+      "display_order": 2
+    },
+    {
+      "id": "col-p2-dustypink",
+      "product_id": "p2",
+      "color_name": "Dusty Pink",
+      "color_hex": "#D8A7B1",
+      "images": [
+        "/khimar-handwork.png",
+        "/hijab-medina.jpg"
+      ],
+      "stock_quantity": 25,
+      "display_order": 3
+    },
+    {
+      "id": "col-p2-wine",
+      "product_id": "p2",
+      "color_name": "Wine",
+      "color_hex": "#722F37",
+      "images": [
+        "/jilbab-blue.png",
+        "/khimar-handwork.png"
+      ],
+      "stock_quantity": 35,
+      "display_order": 4
+    },
+    {
+      "id": "col-p2-olive",
+      "product_id": "p2",
+      "color_name": "Olive",
+      "color_hex": "#556B2F",
+      "images": [
+        "/hijab-muted-sage.jpeg",
+        "/abaya-double-layer.png"
+      ],
+      "stock_quantity": 20,
+      "display_order": 5
+    },
+    {
+      "id": "3c257be6-1ce5-42af-bcfe-dbde2d1552b1",
+      "product_id": "8979073a-3edd-4c13-ae5c-7a98ae451645",
+      "color_name": "Black",
+      "color_hex": "#000000",
+      "images": [
+        "https://res.cloudinary.com/ab5rwasa/image/upload/v1784801985/id9zar0ci5rnwwidhsu4.jpg"
+      ],
+      "stock_quantity": 50,
+      "display_order": 0,
+      "created_at": "2026-07-23T11:38:48.378Z"
+    },
+    {
+      "id": "dbf7e38c-d5cf-4bb5-b36d-2c7353ec31ea",
+      "product_id": "8979073a-3edd-4c13-ae5c-7a98ae451645",
+      "color_name": "Dusty Pink",
+      "color_hex": "#D8A7B1",
+      "images": [
+        "https://res.cloudinary.com/ab5rwasa/image/upload/v1784801995/sttoenznotc7ny22gyay.jpg"
+      ],
+      "stock_quantity": 50,
+      "display_order": 1,
+      "created_at": "2026-07-23T11:38:48.378Z"
+    },
+    {
+      "id": "58837251-98b5-4b43-8e57-11443683c610",
+      "product_id": "8979073a-3edd-4c13-ae5c-7a98ae451645",
+      "color_name": "Champagne",
+      "color_hex": "#F7E7CE",
+      "images": [
+        "https://res.cloudinary.com/ab5rwasa/image/upload/v1784802000/vsi0et9hjntok0anqzmi.jpg"
+      ],
+      "stock_quantity": 50,
+      "display_order": 2,
+      "created_at": "2026-07-23T11:38:48.378Z"
+    },
+    {
+      "id": "85e47002-1138-4304-829a-bc080d6a380d",
+      "product_id": "8979073a-3edd-4c13-ae5c-7a98ae451645",
+      "color_name": "Wine",
+      "color_hex": "#722F37",
+      "images": [
+        "https://res.cloudinary.com/ab5rwasa/image/upload/v1784802005/tqbif5hdngrieyafaruh.jpg"
+      ],
+      "stock_quantity": 50,
+      "display_order": 3,
+      "created_at": "2026-07-23T11:38:48.378Z"
+    },
+    {
+      "id": "col-1784806626467-wj6o1",
+      "product_id": "8979073a-3edd-4c13-ae5c-7a98ae451645",
+      "color_name": "Navy Blue",
+      "color_hex": "#000080",
+      "images": [
+        "https://res.cloudinary.com/ab5rwasa/image/upload/v1784806640/jf2xvcnm8joxqadx18dg.jpg"
+      ],
+      "stock_quantity": 50,
+      "display_order": 4,
+      "created_at": "2026-07-23T11:38:48.378Z"
+    },
+    {
+      "id": "col-1784813970427-3n1cr",
+      "product_id": "8d77ae64-0736-4621-9bd6-6a2a67de14b5",
+      "color_name": "Black",
+      "color_hex": "#000000",
+      "images": [
+        "https://res.cloudinary.com/ab5rwasa/image/upload/v1784813977/uqoryfqc7iiurlyxpwjo.jpg"
+      ],
+      "stock_quantity": 50,
+      "display_order": 0,
+      "created_at": "2026-07-23T13:39:48.057Z"
+    },
+    {
+      "id": "col-1784813971189-73ozj",
+      "product_id": "8d77ae64-0736-4621-9bd6-6a2a67de14b5",
+      "color_name": "White",
+      "color_hex": "#FFFFFF",
+      "images": [
+        "https://res.cloudinary.com/ab5rwasa/image/upload/v1784813983/jddlqwpjoewom1tjtbf4.jpg"
+      ],
+      "stock_quantity": 50,
+      "display_order": 1,
+      "created_at": "2026-07-23T13:39:48.058Z"
+    },
+    {
+      "id": "col-1784815378603-e89fm",
+      "product_id": "f4bc773b-c401-48ff-957e-ce7695360590",
+      "color_name": "Black",
+      "color_hex": "#000000",
+      "images": [
+        "https://res.cloudinary.com/ab5rwasa/image/upload/v1784815536/uil8dzddqbwlehxwywuw.jpg"
+      ],
+      "stock_quantity": 50,
+      "display_order": 0,
+      "created_at": "2026-07-23T14:06:17.469Z"
+    },
+    {
+      "id": "col-1784815381665-iu6hy",
+      "product_id": "f4bc773b-c401-48ff-957e-ce7695360590",
+      "color_name": "Dusty Pink",
+      "color_hex": "#D8A7B1",
+      "images": [
+        "https://res.cloudinary.com/ab5rwasa/image/upload/v1784815559/c49ibacxzynfmj5o3dms.jpg"
+      ],
+      "stock_quantity": 50,
+      "display_order": 1,
+      "created_at": "2026-07-23T14:06:17.475Z"
+    },
+    {
+      "id": "col-1784815397520-b5fmy",
+      "product_id": "f4bc773b-c401-48ff-957e-ce7695360590",
+      "color_name": "Champagne",
+      "color_hex": "#F7E7CE",
+      "images": [
+        "https://res.cloudinary.com/ab5rwasa/image/upload/v1784815564/hsneyfsmx7hm18vpdgws.jpg"
+      ],
+      "stock_quantity": 50,
+      "display_order": 2,
+      "created_at": "2026-07-23T14:06:17.475Z"
+    },
+    {
+      "id": "col-1784815401487-b7wrm",
+      "product_id": "f4bc773b-c401-48ff-957e-ce7695360590",
+      "color_name": "Wine",
+      "color_hex": "#722F37",
+      "images": [
+        "https://res.cloudinary.com/ab5rwasa/image/upload/v1784815571/sydgcyccciyog76tfflv.jpg"
+      ],
+      "stock_quantity": 50,
+      "display_order": 3,
+      "created_at": "2026-07-23T14:06:17.475Z"
+    },
+    {
+      "id": "col-1784816437990-kpx1w",
+      "product_id": "2edcaffa-8e11-458a-b49a-0061e880e0eb",
+      "color_name": "White",
+      "color_hex": "#FFFFFF",
+      "images": [
+        "https://res.cloudinary.com/ab5rwasa/image/upload/v1784816460/r7ysshxuw5ivlmqewlvf.jpg"
+      ],
+      "stock_quantity": 50,
+      "display_order": 0,
+      "created_at": "2026-07-23T14:21:44.867Z"
+    },
+    {
+      "id": "col-1784816439283-2e8p5",
+      "product_id": "2edcaffa-8e11-458a-b49a-0061e880e0eb",
+      "color_name": "Beige",
+      "color_hex": "#E6DAC4",
+      "images": [
+        "https://res.cloudinary.com/ab5rwasa/image/upload/v1784816481/ny4hpg8lkrmptmh5xuq5.jpg"
+      ],
+      "stock_quantity": 50,
+      "display_order": 1,
+      "created_at": "2026-07-23T14:21:44.868Z"
+    },
+    {
+      "id": "col-1784816440019-abcbl",
+      "product_id": "2edcaffa-8e11-458a-b49a-0061e880e0eb",
+      "color_name": "Wine",
+      "color_hex": "#722F37",
+      "images": [
+        "https://res.cloudinary.com/ab5rwasa/image/upload/v1784816497/a39h58n7j4gmn0ugapds.jpg"
+      ],
+      "stock_quantity": 50,
+      "display_order": 2,
+      "created_at": "2026-07-23T14:21:44.868Z"
+    }
+  ],
   "profiles": [
     {
       "id": "mock-admin-id",
@@ -95,6 +338,7 @@
       "is_featured": true,
       "description": "Premium front open double layer abaya designed with maximum flow and drape.",
       "short_description": "Front open double layer abaya",
+      "size": "Free Size (Fits S to XXL)",
       "created_at": "2026-06-25T14:34:14Z"
     },
     {
@@ -111,6 +355,7 @@
       "is_featured": true,
       "description": "Premium quality chiffon hijab with neat baby hem finishing.",
       "short_description": "Premium quality chiffon hijab",
+      "size": "180 × 2m",
       "created_at": "2026-06-25T14:34:14Z"
     },
     {
@@ -126,6 +371,7 @@
       "is_featured": true,
       "description": "Super soft, stretchable, and durable jersey hijab.",
       "short_description": "Super soft jersey hijab",
+      "size": "180 × 2m",
       "created_at": "2026-06-25T14:34:14Z"
     },
     {
@@ -142,7 +388,48 @@
       "is_featured": true,
       "description": "Overhead flowing jilbab with finger loops and high-quality tie back band.",
       "short_description": "Overhead flowing blue jilbab",
+      "size": "One Size",
       "created_at": "2026-06-25T14:34:14Z"
+    },
+    {
+      "id": "0e40f863-89dd-493f-913e-e1e38542638a",
+      "name": "Appliances",
+      "slug": "appliances",
+      "price": 500,
+      "oldPrice": 600,
+      "size": "Free s",
+      "badge": "Premium",
+      "is_active": true
+    },
+    {
+      "id": "8d77ae64-0736-4621-9bd6-6a2a67de14b5",
+      "name": "Appliances",
+      "slug": "appliances",
+      "price": 500,
+      "oldPrice": 600,
+      "size": "Free s",
+      "badge": "Premium",
+      "is_active": true
+    },
+    {
+      "id": "f4bc773b-c401-48ff-957e-ce7695360590",
+      "name": "Premium Hijab Inner Neck Cover (Tie-Back) – Black",
+      "slug": "premium-hijab-inner-neck-cover-tie-back-black",
+      "price": 799,
+      "oldPrice": 899,
+      "size": "Free size",
+      "badge": "New",
+      "is_active": true
+    },
+    {
+      "id": "2edcaffa-8e11-458a-b49a-0061e880e0eb",
+      "name": "Premium Paisley Woven Shawl with Tassels",
+      "slug": "premium-paisley-woven-shawl-with-tassels",
+      "price": 1299,
+      "oldPrice": 1399,
+      "size": "Free Size",
+      "badge": "Bestseller",
+      "is_active": true
     }
   ],
   "orders": [

@@ -62,6 +62,7 @@ export type Product = {
   image: string;
   badge?: string;
   rating: number;
+  size?: string;
 };
 
 export const products: Product[] = [
@@ -74,6 +75,7 @@ export const products: Product[] = [
     image: "/abaya-double-layer.png",
     badge: "Bestseller",
     rating: 4.9,
+    size: "Free Size (Fits S to XXL)",
   },
   {
     id: "p2",
@@ -84,6 +86,7 @@ export const products: Product[] = [
     image: "/hijab-medina.jpg",
     badge: "New",
     rating: 4.8,
+    size: "Free Size",
   },
   {
     id: "p3",
@@ -93,6 +96,7 @@ export const products: Product[] = [
     image: "/hijab-muted-sage.jpeg",
     badge: "Hot",
     rating: 4.9,
+    size: "Free Size",
   },
   {
     id: "p4",
@@ -103,6 +107,7 @@ export const products: Product[] = [
     image: "/jilbab-blue.png",
     badge: "Premium",
     rating: 4.7,
+    size: "One Size",
   },
   {
     id: "p5",
@@ -112,6 +117,7 @@ export const products: Product[] = [
     oldPrice: 1599,
     image: "/khimar-one-layer-black.jpg",
     rating: 4.8,
+    size: "200 × 75cm",
   },
   {
     id: "p6",
@@ -122,6 +128,7 @@ export const products: Product[] = [
     image: "/khimar-handwork.png",
     badge: "Handcrafted",
     rating: 4.9,
+    size: "200 × 75cm",
   },
   {
     id: "p7",
@@ -130,6 +137,7 @@ export const products: Product[] = [
     price: 3199,
     image: "/jilbab-black.png",
     rating: 4.6,
+    size: "One Size",
   },
   {
     id: "p8",
@@ -139,6 +147,7 @@ export const products: Product[] = [
     image: "/abaya-front-open.png",
     badge: "Popular",
     rating: 4.8,
+    size: "Free Size",
   },
 ];
 

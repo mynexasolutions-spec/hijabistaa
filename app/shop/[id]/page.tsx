@@ -1,5 +1,6 @@
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import ProductDetailSection from './_components/ProductDetailSection'
 import ProductDetailActions from './_components/ProductDetailActions'
 import ProductGallery from './_components/ProductGallery'
 import ProductReviews from './_components/ProductReviews'
@@ -20,7 +21,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     const { data } = await supabase
       .from("products")
       .select(`
-        id, name, slug, category_id, is_active, badge, rating, price, oldPrice, short_description, description, featured_image_url,
+        id, name, slug, category_id, is_active, badge, rating, price, oldPrice, short_description, description, featured_image_url, size,
         product_images ( image_url ),
         product_variants ( id, variant_name, price, original_price, stock_quantity ),
         product_information ( label, value, display_order ),
@@ -39,7 +40,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       const { data: slugProduct } = await supabase
         .from("products")
         .select(`
-          id, name, slug, category_id, is_active, badge, rating, price, oldPrice, short_description, description, featured_image_url,
+          id, name, slug, category_id, is_active, badge, rating, price, oldPrice, short_description, description, featured_image_url, size,
           product_images ( image_url ),
           product_variants ( id, variant_name, price, original_price, stock_quantity ),
           product_information ( label, value, display_order ),
@@ -53,22 +54,39 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     }
   }
 
-  // Fallback to static lib/data if not found in Supabase
-  
-  // Safely attempt to fetch use_global_faqs so missing column doesn't break everything
+  // Safely attempt to fetch size from Supabase so missing column in schema cache doesn't break product fetching
   if (productData) {
     try {
-      const { data: flagData } = await supabase
+      const { data: sizeData } = await supabase
         .from("products")
-        .select("use_global_faqs")
+        .select("size")
         .eq("id", productData.id)
         .single();
-      if (flagData) {
-        productData.use_global_faqs = flagData.use_global_faqs;
+      if (sizeData && sizeData.size !== undefined && sizeData.size !== null) {
+        productData.size = sizeData.size;
       }
     } catch (e) {
-      // Column might not exist yet, ignore
+      // Column might not exist in Supabase schema cache yet, ignore
     }
+  }
+
+  // Check lib/db.json fallback for size ONLY if size was never set or defined
+  if (productData && productData.size === undefined) {
+    try {
+      const fs = await import('fs')
+      const path = await import('path')
+      const dbPath = path.join(process.cwd(), 'lib', 'db.json')
+      if (fs.existsSync(dbPath)) {
+        const fileData = fs.readFileSync(dbPath, 'utf8')
+        const json = JSON.parse(fileData)
+        if (Array.isArray(json.products)) {
+          const dbProd = json.products.find((p: any) => p.id === productData.id || p.slug === productData.slug)
+          if (dbProd && dbProd.size !== undefined && dbProd.size !== null) {
+            productData.size = dbProd.size
+          }
+        }
+      }
+    } catch (e) {}
   }
 
   if (!productData || !productData.is_active) {
@@ -89,6 +107,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         rating: staticProduct.rating || 4.9,
         short_description: `Essential luxury ${staticProduct.name} crafted for exceptional comfort, graceful coverage, and modern elegance.`,
         description: `Discover the unmatched drape and supreme softness of our ${staticProduct.name}. Carefully designed with breathable fabric and superior stitching to ensure a comfortable fit and lasting durability throughout the day.`,
+        size: (staticProduct as any).size || "",
         fabric: "Premium Modest Chiffon / Silk Blend",
         stitching: "Precision reinforced stitching",
         featured_image_url: staticProduct.image || "/hijab-medina.jpg",
@@ -161,9 +180,24 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   }
   faqs.sort((a: any, b: any) => a.display_order - b.display_order)
 
-  // Filter out inactive or out-of-stock variants if we want to be strict,
-  // but let's just pass them down and disable out-of-stock ones
-  const variants = productData.product_variants || []
+  // Compile product variants (with lib/db.json fallback)
+  let variants = productData.product_variants || []
+  if (variants.length === 0 && productData.id) {
+    try {
+      const fs = await import('fs')
+      const path = await import('path')
+      const dbPath = path.join(process.cwd(), 'lib', 'db.json')
+      if (fs.existsSync(dbPath)) {
+        const json = JSON.parse(fs.readFileSync(dbPath, 'utf8'))
+        if (Array.isArray(json.product_variants)) {
+          const localVars = json.product_variants.filter((pv: any) => pv.product_id === productData.id)
+          if (localVars.length > 0) {
+            variants = localVars
+          }
+        }
+      }
+    } catch (e) {}
+  }
 
   // Fetch other colors of this same design (color group)
   let colorOptions: any[] = []
@@ -188,6 +222,42 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       }))
     } catch (e) {
       console.error("Error fetching color options:", e);
+    }
+  }
+
+  // Fetch Color Variants for this product
+  let productColors: any[] = []
+  if (productData && productData.id) {
+    try {
+      const { data: cols } = await supabase
+        .from("product_colors")
+        .select("id, color_name, color_hex, images, stock_quantity, display_order")
+        .eq("product_id", productData.id)
+        .order("display_order", { ascending: true });
+
+      if (cols && cols.length > 0) {
+        productColors = cols;
+      }
+    } catch (e) {
+      console.error("Error fetching product_colors from Supabase:", e);
+    }
+
+    if (productColors.length === 0) {
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+        const dbPath = path.join(process.cwd(), 'lib', 'db.json');
+        if (fs.existsSync(dbPath)) {
+          const fileData = fs.readFileSync(dbPath, 'utf8');
+          const json = JSON.parse(fileData);
+          if (Array.isArray(json.product_colors)) {
+            const localCols = json.product_colors.filter((pc: any) => pc.product_id === productData.id);
+            if (localCols.length > 0) {
+              productColors = localCols;
+            }
+          }
+        }
+      } catch (e) {}
     }
   }
 
@@ -322,140 +392,20 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <span className="text-ink font-semibold truncate max-w-[200px]">{productData.name}</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-start">
-            {/* Left: Product Image Gallery */}
-            <ProductGallery images={images} productName={productData.name} badge={productData.badge} />
-
-            {/* Right: Product Details & Purchase Form */}
-            <div className="space-y-8">
-              <div>
-                <span className="text-xs uppercase tracking-wider text-gold font-bold">
-                  {categoryName}
-                </span>
-                <h1 className="font-display font-bold text-3xl md:text-4xl lg:text-5xl text-ink mt-2 leading-tight">
-                  {productData.name}
-                </h1>
-                
-                {/* Dynamic Real-Time Rating & Review Count */}
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-ink/70">
-                  <div className="flex text-gold text-base tracking-tight gap-0.5">
-                    {'★'.repeat(starCount)}
-                  </div>
-                  <span className="font-bold text-ink">{displayRating} ★</span>
-                  <span className="text-ink/30">|</span>
-                  <a href="#reviews" className="text-emerald font-semibold hover:underline transition-colors">
-                    {reviewCount} {reviewCount === 1 ? 'Review' : 'Reviews'}
-                  </a>
-                </div>
-              </div>
-
-              {/* Color Options */}
-              {colorOptions.length > 1 && (
-                <div>
-                  <p className="text-[13px] uppercase tracking-wider font-bold text-ink/70 mb-3">
-                    Color{productData.color_name ? ` — ${productData.color_name}` : ''}
-                    <span className="ml-1.5 font-semibold normal-case text-emerald">
-                      ({colorOptions.length} colors available)
-                    </span>
-                  </p>
-                  <div className="flex flex-wrap gap-3">
-                    {colorOptions.map((c) => (
-                      <Link
-                        key={c.id}
-                        href={`/shop/${c.id}`}
-                        title={c.color_name || c.name}
-                        className={`relative w-11 h-11 rounded-full border-2 overflow-hidden shrink-0 transition-all ${
-                          c.id === productData.id
-                            ? 'border-emerald scale-110 shadow-sm'
-                            : 'border-cream-line hover:border-emerald/50'
-                        }`}
-                        style={{ backgroundColor: c.color_hex || '#E6DAC4' }}
-                      >
-                        <span className="sr-only">{c.color_name || c.name}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Purchase Actions client-side wrapper (includes dynamic price and Add to cart) */}
-              <ProductDetailActions 
-                product={{
-                  id: productData.id,
-                  name: productData.name,
-                  image_url: images[0] || "/image.png",
-                  category_name: categoryName,
-                  price: productData.price != null ? Number(productData.price) : undefined,
-                  oldPrice: productData.oldPrice != null ? Number(productData.oldPrice) : (productData.original_price != null ? Number(productData.original_price) : undefined),
-                  variants: variants
-                }}
-              />
-
-              {productData.short_description && (
-                <div className="font-body text-ink/80 text-lg leading-relaxed pt-2">
-                  <p>{productData.short_description}</p>
-                </div>
-              )}
-
-              {/* Information, Description & FAQs */}
-              <div className="space-y-4 pt-6 border-t border-cream-line/50">
-                {/* Product Specifications */}
-                {information.length > 0 && (
-                  <details className="group bg-white rounded-2xl border border-cream-line shadow-sm overflow-hidden open:bg-cream-deep/30 transition-colors" open>
-                    <summary className="font-display font-semibold text-ink text-[15px] px-5 py-4 cursor-pointer flex justify-between items-center outline-none list-none hover:text-emerald transition-colors">
-                      Product Specifications
-                      <span className="text-ink/50 transition-transform group-open:rotate-180 group-open:text-emerald">
-                        <svg fill="none" height="18" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="18"><polyline points="6 9 12 15 18 9"/></svg>
-                      </span>
-                    </summary>
-                    <div className="px-3 md:px-3 lg:px-5 pb-5 pt-2 border-t border-cream-line/50">
-                      <div className="grid grid-cols-2 gap-4 mt-3">
-                        {information.map((info: any, idx: number) => (
-                          <div key={idx} className="p-4 bg-white rounded-xl border border-cream-line shadow-sm">
-                            <p className="text-[11px] font-bold text-ink/50 uppercase tracking-wider">{info.label}</p>
-                            <p className="text-sm font-semibold text-emerald mt-1">{info.value}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </details>
-                )}
-
-                <details className="group bg-white rounded-2xl border border-cream-line shadow-sm overflow-hidden open:bg-cream-deep/30 transition-colors">
-                  <summary className="font-display font-semibold text-ink text-[15px] px-5 py-4 cursor-pointer flex justify-between items-center outline-none list-none hover:text-emerald transition-colors">
-                    Product Details
-                    <span className="text-ink/50 transition-transform group-open:rotate-180 group-open:text-emerald">
-                      <svg fill="none" height="18" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="18"><polyline points="6 9 12 15 18 9"/></svg>
-                    </span>
-                  </summary>
-                  <div className="px-5 pb-5 text-ink/70 text-sm leading-relaxed border-t border-cream-line/50 mx-5 pt-3 whitespace-pre-wrap">
-                    {productData.description || "Discover the unmatched drape and supreme softness of our Basic Luxe Chiffon Hijab — Medina. Carefully designed with breathable fabric and superior stitching to ensure a comfortable fit and lasting durability throughout the day."}
-                  </div>
-                </details>
-
-                {faqs.length > 0 && (
-                  <div className="pt-4">
-                    <h3 className="font-display font-semibold text-xl text-ink mb-4">Common Questions</h3>
-                    <div className="space-y-3">
-                      {faqs.map((faq: any, idx: number) => (
-                        <details key={idx} className="group bg-white rounded-2xl border border-cream-line shadow-sm overflow-hidden open:bg-cream-deep/30 transition-colors">
-                          <summary className="font-display font-semibold text-ink text-[15px] px-5 py-4 cursor-pointer flex justify-between items-center outline-none list-none hover:text-emerald transition-colors">
-                            {faq.question}
-                            <span className="text-ink/50 transition-transform group-open:rotate-180 group-open:text-emerald">
-                              <svg fill="none" height="18" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="18"><polyline points="6 9 12 15 18 9"/></svg>
-                            </span>
-                          </summary>
-                          <div className="px-5 pb-5 text-ink/70 text-sm leading-relaxed border-t border-cream-line/50 mx-5 pt-3">
-                            {faq.answer}
-                          </div>
-                        </details>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          {/* Product Detail Section with dynamic Color Variants & Image Gallery filtering */}
+          <ProductDetailSection
+            productData={productData}
+            categoryName={categoryName}
+            displayRating={displayRating}
+            starCount={starCount}
+            reviewCount={reviewCount}
+            images={images}
+            variants={variants}
+            colorVariants={productColors}
+            information={information}
+            faqs={faqs}
+            reviews={reviews}
+          />
 
         </div>
 

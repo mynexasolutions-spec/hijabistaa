@@ -1,12 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import ProductForm from '../../_components/ProductForm'
+import ProductForm, { ProductSubmitButton } from '../../_components/ProductForm'
 import ProductInfoEditor from '../../_components/ProductInfoEditor'
 import ProductFaqEditor from '../../_components/ProductFaqEditor'
 import { ProductVariantsEditor } from '../../_components/ProductVariantsEditor'
 import { ProductImagesEditor } from '../../_components/ProductImagesEditor'
-import { ArrowLeft, Save } from 'lucide-react'
+import ProductColorEditor from '../../_components/ProductColorEditor'
+import { ArrowLeft, Save, Eye } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -20,6 +21,40 @@ export default async function EditProductPage({
 }) {
   const { id } = await params
   const supabase = await createClient()
+
+  let initialColors: any[] = []
+  try {
+    const { data: colorData } = await supabase
+      .from('product_colors')
+      .select('*')
+      .eq('product_id', id)
+      .order('display_order', { ascending: true })
+
+    if (colorData && colorData.length > 0) {
+      initialColors = colorData
+    }
+  } catch (e) {
+    console.error('Error fetching product_colors from Supabase:', e)
+  }
+
+  // Fallback / merge with lib/db.json
+  if (initialColors.length === 0) {
+    try {
+      const fs = await import('fs')
+      const path = await import('path')
+      const dbPath = path.join(process.cwd(), 'lib', 'db.json')
+      if (fs.existsSync(dbPath)) {
+        const fileData = fs.readFileSync(dbPath, 'utf8')
+        const json = JSON.parse(fileData)
+        if (Array.isArray(json.product_colors)) {
+          const localCols = json.product_colors.filter((pc: any) => pc.product_id === id)
+          if (localCols.length > 0) {
+            initialColors = localCols
+          }
+        }
+      }
+    } catch (localErr) {}
+  }
 
   const [productRes, categoriesRes, otherProductsRes, infoRes, faqRes, variantsRes, imagesRes] = await Promise.all([
     supabase.from('products').select('*').eq('id', id).single(),
@@ -59,6 +94,25 @@ export default async function EditProductPage({
     notFound()
   }
 
+  // Fallback for product size from db.json if missing in Supabase due to cache
+  if (!productRes.data.size) {
+    try {
+      const fs = await import('fs')
+      const path = await import('path')
+      const dbPath = path.join(process.cwd(), 'lib', 'db.json')
+      if (fs.existsSync(dbPath)) {
+        const fileData = fs.readFileSync(dbPath, 'utf8')
+        const json = JSON.parse(fileData)
+        if (Array.isArray(json.products)) {
+          const localProd = json.products.find((p: any) => p.id === id)
+          if (localProd && localProd.size) {
+            productRes.data.size = localProd.size
+          }
+        }
+      }
+    } catch (e) {}
+  }
+
   return (
     <div className="max-w-6xl space-y-6">
       <div className="flex items-center justify-between pb-4 border-b border-stone-200">
@@ -69,14 +123,17 @@ export default async function EditProductPage({
           <ArrowLeft className="w-4 h-4" />
           Back to Products
         </Link>
-        <button
-          type="submit"
-          form="product-form"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold rounded-xl shadow-md shadow-orange-500/20 hover:shadow-lg hover:from-orange-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500/40 transition-all duration-200"
-        >
-          <Save className="w-4 h-4" />
-          Update Product
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/shop/${id}`}
+            target="_blank"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-stone-700 text-sm font-semibold rounded-xl border border-stone-200 shadow-2xs hover:bg-stone-50 hover:text-stone-900 transition-all duration-200"
+          >
+            <Eye className="w-4 h-4 text-stone-500" />
+            View Product
+          </Link>
+          <ProductSubmitButton formId="product-form" isEditing={true} />
+        </div>
       </div>
 
       <div>
@@ -92,18 +149,17 @@ export default async function EditProductPage({
         otherProducts={otherProductsRes.data || []}
       />
 
+      {/* Color Variants Editor */}
+      <ProductColorEditor
+        productId={id}
+        initialColors={initialColors}
+      />
+
       {/* Additional Info & FAQs only shown when editing */}
       <ProductInfoEditor
         productId={id}
         initialItems={infoRes.data || []}
       />
-
-      <div className="bg-white p-6 shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
-        <ProductVariantsEditor
-          productId={id}
-          variants={variantsRes.data || []}
-        />
-      </div>
 
       <div className="bg-white p-6 shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
         <ProductImagesEditor

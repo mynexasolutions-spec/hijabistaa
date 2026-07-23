@@ -46,10 +46,52 @@ export default function ProductForm({ product, categories, otherProducts = [] }:
     return unique;
   }, [otherProducts]);
 
+  // Multiple Size state (parsed from product?.size comma-separated values)
+  const initialSizes = useMemo(() => {
+    if (product?.size) {
+      return product.size
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s && s !== '180 × 2m' && s !== '180 * 2 m')
+    }
+    return []
+  }, [product?.size])
+
+  const [sizeList, setSizeList] = useState<string[]>(initialSizes)
+  const [sizeInput, setSizeInput] = useState<string>('')
+
+  const handleAddSize = (val?: string | any) => {
+    const toAdd = (typeof val === 'string' ? val : sizeInput).trim()
+    if (toAdd) {
+      setSizeList(prev => {
+        if (!prev.some(s => s.toLowerCase() === toAdd.toLowerCase())) {
+          return [...prev, toAdd]
+        }
+        return prev
+      })
+      if (typeof val !== 'string') {
+        setSizeInput('')
+      }
+    }
+  }
+
+  const handleRemoveSize = (toRemove: string) => {
+    setSizeList(prev => prev.filter(s => s.toLowerCase() !== toRemove.toLowerCase()))
+  }
+
   return (
     <form
       id="product-form"
-      action={(formData) => startTransition(() => formAction(formData))}
+      onSubmit={(e) => {
+        e.preventDefault()
+        const formData = new FormData(e.currentTarget)
+        let currentSizes = [...sizeList]
+        if (sizeInput.trim() && !currentSizes.includes(sizeInput.trim())) {
+          currentSizes.push(sizeInput.trim())
+        }
+        formData.set('size', currentSizes.join(', '))
+        startTransition(() => formAction(formData))
+      }}
       className="space-y-6"
     >
       {isEditing && <input type="hidden" name="id" value={product.id} />}
@@ -246,7 +288,7 @@ export default function ProductForm({ product, categories, otherProducts = [] }:
         <div className="lg:col-span-1 space-y-6">
           {/* Status */}
           <div className="bg-white rounded-xl border border-stone-200/80 p-6 space-y-5">
-            <h2 className="text-base font-semibold text-stone-900">Status</h2>
+            <h2 className="text-base font-semibold text-stone-900">Status & Size</h2>
 
             {/* Badge / Tag */}
             <div>
@@ -312,6 +354,74 @@ export default function ProductForm({ product, categories, otherProducts = [] }:
               </p>
             </div>
 
+            {/* Multiple Size Manager */}
+            <div className="pt-3 border-t border-stone-200/80">
+              <label
+                htmlFor="product-size"
+                className="block text-sm font-medium text-stone-700 mb-1.5"
+              >
+                Size
+              </label>
+              <input type="hidden" name="size" value={sizeList.join(', ')} />
+              <div className="flex gap-2">
+                <input
+                  id="product-size"
+                  type="text"
+                  value={sizeInput}
+                  onChange={(e) => setSizeInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      handleAddSize()
+                    }
+                  }}
+                  placeholder="e.g. Free Size, One Size, Standard"
+                  className="w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 transition-all duration-200"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleAddSize()}
+                  className="px-4 py-2.5 bg-stone-100 text-stone-700 text-sm font-semibold rounded-xl hover:bg-stone-200 transition-all whitespace-nowrap shrink-0 border border-stone-200"
+                >
+                  Add
+                </button>
+              </div>
+
+              {/* Display Added Sizes */}
+              {sizeList.length > 0 && (
+                <div className="mt-3 pt-2.5 border-t border-stone-100">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-semibold text-stone-600">Selected Sizes ({sizeList.length}):</span>
+                    <button
+                      type="button"
+                      onClick={() => setSizeList([])}
+                      className="text-xs font-medium text-stone-400 hover:text-red-500 transition-colors"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {sizeList.map((sz) => (
+                      <span
+                        key={sz}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-stone-100 text-stone-800 border border-stone-200 rounded-lg text-xs font-bold"
+                      >
+                        {sz}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSize(sz)}
+                          className="hover:text-red-600 text-stone-400 font-bold ml-1 transition-colors"
+                          title="Remove size"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Active Status */}
             <div className="flex items-center gap-3">
               <input
@@ -358,19 +468,72 @@ export default function ProductForm({ product, categories, otherProducts = [] }:
           <ArrowLeft className="w-4 h-4" />
           Back to Products
         </Link>
-        <button
-          type="submit"
-          disabled={pending}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold rounded-xl shadow-md shadow-orange-500/20 hover:shadow-lg hover:from-orange-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500/40 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
-        >
-          {pending ? (
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : (
-            <Save className="w-4 h-4" />
-          )}
-          {isEditing ? 'Update Product' : 'Create Product'}
-        </button>
+        <ProductSubmitButton isEditing={isEditing} />
       </div>
     </form>
+  )
+}
+
+export function ProductSubmitButton({
+  isEditing = true,
+  formId,
+  className,
+}: {
+  isEditing?: boolean
+  formId?: string
+  className?: string
+}) {
+  const [loading, setLoading] = useState(false)
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const formIdAttr = e.currentTarget.getAttribute('form')
+    let isValid = true
+    
+    if (formIdAttr) {
+      const form = document.getElementById(formIdAttr) as HTMLFormElement
+      if (form && !form.checkValidity()) {
+        isValid = false
+      }
+    } else {
+      const form = e.currentTarget.closest('form')
+      if (form && !form.checkValidity()) {
+        isValid = false
+      }
+    }
+
+    // If form is invalid, let browser show validation messages and do NOT show loading state
+    if (!isValid) return
+
+    // Delay disabling so the browser has time to trigger the form submit event
+    setTimeout(() => {
+      setLoading(true)
+    }, 50)
+    
+    // Auto reset in case of validation errors
+    setTimeout(() => {
+      setLoading(false)
+    }, 3000)
+  }
+
+  return (
+    <button
+      type="submit"
+      form={formId}
+      onClick={handleClick}
+      disabled={loading}
+      className={className || "inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-semibold rounded-xl shadow-md shadow-orange-500/20 hover:shadow-lg hover:from-orange-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500/40 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"}
+    >
+      {loading ? (
+        <>
+          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
+          <span>{isEditing ? 'Updating...' : 'Creating...'}</span>
+        </>
+      ) : (
+        <>
+          <Save className="w-4 h-4 shrink-0" />
+          <span>{isEditing ? 'Update Product' : 'Create Product'}</span>
+        </>
+      )}
+    </button>
   )
 }

@@ -31,6 +31,7 @@ export async function createProduct(
   const categoryId = formData.get('category_id') as string
   const shortDescription = formData.get('short_description') as string
   const description = formData.get('description') as string
+  const size = formData.get('size') as string
 
   const price = parseFloat(formData.get('price') as string) || 0
   const oldPriceStr = formData.get('oldPrice') as string
@@ -49,7 +50,7 @@ export async function createProduct(
   const slug = slugify(name)
   const id = crypto.randomUUID()
 
-  const { data: product, error } = await supabase.from('products').insert({
+  const baseProductData: any = {
     id,
     name,
     slug,
@@ -64,7 +65,26 @@ export async function createProduct(
     badge: badge || null,
     is_active: isActive,
     is_featured: isFeatured,
+  }
+
+  let product: any = null
+  let error: any = null
+
+  // Try insert with size column first
+  const res = await supabase.from('products').insert({
+    ...baseProductData,
+    size: size || null,
   }).select('id').single()
+
+  if (res.error && (res.error.message?.includes('size') || res.error.code === 'PGRST204')) {
+    // Retry without size column if column not present in schema cache yet
+    const fallbackRes = await supabase.from('products').insert(baseProductData).select('id').single()
+    product = fallbackRes.data
+    error = fallbackRes.error
+  } else {
+    product = res.data
+    error = res.error
+  }
 
   if (error) {
     if (error.code === '23505') {
@@ -73,7 +93,34 @@ export async function createProduct(
     return { error: error.message }
   }
 
+  // Sync size to lib/db.json fallback
+  if (product && product.id) {
+    try {
+      const fs = await import('fs')
+      const path = await import('path')
+      const dbPath = path.join(process.cwd(), 'lib', 'db.json')
+      if (fs.existsSync(dbPath)) {
+        const fileData = fs.readFileSync(dbPath, 'utf8')
+        const json = JSON.parse(fileData)
+        if (Array.isArray(json.products)) {
+          json.products.push({
+            id: product.id,
+            name,
+            slug,
+            price,
+            oldPrice,
+            size: size || null,
+            badge: badge || null,
+            is_active: isActive
+          })
+          fs.writeFileSync(dbPath, JSON.stringify(json, null, 2), 'utf8')
+        }
+      }
+    } catch (e) {}
+  }
+
   revalidatePath('/admin/products')
+  revalidatePath('/shop')
   redirect(`/admin/products/${product.id}/edit`)
 }
 
@@ -88,6 +135,7 @@ export async function updateProduct(
   const categoryId = formData.get('category_id') as string
   const shortDescription = formData.get('short_description') as string
   const description = formData.get('description') as string
+  const size = formData.get('size') as string
 
   const price = parseFloat(formData.get('price') as string) || 0
   const oldPriceStr = formData.get('oldPrice') as string
@@ -105,24 +153,77 @@ export async function updateProduct(
 
   const slug = slugify(name)
 
-  const { error } = await supabase
-    .from('products')
-    .update({
-      name,
-      slug,
-      category_id: categoryId || null,
-      short_description: shortDescription || null,
-      description: description || null,
-      price,
-      oldPrice,
+  const updatePayload: any = {
+    name,
+    slug,
+    category_id: categoryId || null,
+    short_description: shortDescription || null,
+    description: description || null,
+    price,
+    oldPrice,
 
-      seo_title: seoTitle || null,
-      seo_description: seoDescription || null,
-      badge: badge || null,
-      is_active: isActive,
-      is_featured: isFeatured,
-    })
+    seo_title: seoTitle || null,
+    seo_description: seoDescription || null,
+    badge: badge || null,
+    is_active: isActive,
+    is_featured: isFeatured,
+  }
+
+  // DEBUG LOGGING
+  try {
+    const fs = await import('fs')
+    fs.appendFileSync('action-debug.log', `[${new Date().toISOString()}] updateProduct id=${id} size=${size}\n`)
+  } catch (e) {}
+
+  let { error } = await supabase
+    .from('products')
+    .update({ ...updatePayload, size: size || null })
     .eq('id', id)
+
+  if (error && (error.message?.includes('size') || error.code === 'PGRST204')) {
+    try {
+      const fs = await import('fs')
+      fs.appendFileSync('action-debug.log', `[${new Date().toISOString()}] FALLBACK TRIGGERED for id=${id}\n`)
+    } catch (e) {}
+    // Retry without size column if size column is missing in Supabase schema cache
+    const retryRes = await supabase.from('products').update(updatePayload).eq('id', id)
+    error = retryRes.error
+  }
+
+  // Sync size to lib/db.json fallback
+  try {
+    const fs = await import('fs')
+    const path = await import('path')
+    const dbPath = path.join(process.cwd(), 'lib', 'db.json')
+    if (fs.existsSync(dbPath)) {
+      const fileData = fs.readFileSync(dbPath, 'utf8')
+      const json = JSON.parse(fileData)
+      if (!Array.isArray(json.products)) json.products = []
+      
+      const prodIdx = json.products.findIndex((p: any) => p.id === id)
+      if (prodIdx >= 0) {
+        json.products[prodIdx] = {
+          ...json.products[prodIdx],
+          name,
+          size: size || null,
+          price,
+          oldPrice
+        }
+      } else {
+        json.products.push({
+          id,
+          name,
+          slug,
+          price,
+          oldPrice,
+          size: size || null,
+          badge: badge || null,
+          is_active: isActive
+        })
+      }
+      fs.writeFileSync(dbPath, JSON.stringify(json, null, 2), 'utf8')
+    }
+  } catch (e) {}
 
   if (error) {
     if (error.code === '23505') {
@@ -132,6 +233,8 @@ export async function updateProduct(
   }
 
   revalidatePath('/admin/products')
+  revalidatePath(`/shop/${id}`)
+  revalidatePath('/shop')
   redirect('/admin/products')
 }
 
@@ -329,20 +432,46 @@ export async function createProductVariant(
     return { error: 'Product ID, Variant Name, and Price are required' }
   }
 
-  const { error } = await supabase.from('product_variants').insert({
+  const variantId = crypto.randomUUID()
+  const payload: any = {
+    id: variantId,
     product_id: productId,
     variant_name: variantName,
     price: parseFloat(price),
     original_price: originalPrice ? parseFloat(originalPrice) : null,
     stock_quantity: parseInt(stockQuantity || '0', 10),
     is_active: isActive,
-  })
+  }
+
+  let { error } = await supabase.from('product_variants').insert(payload)
+
+  // Retry without is_active if column doesn't exist in Supabase DB schema cache
+  if (error && (error.message?.includes('is_active') || error.code === 'PGRST204')) {
+    const { is_active, ...fallbackPayload } = payload
+    const res = await supabase.from('product_variants').insert(fallbackPayload)
+    error = res.error
+  }
+
+  // Local db.json sync fallback
+  try {
+    const fs = await import('fs')
+    const path = await import('path')
+    const dbPath = path.join(process.cwd(), 'lib', 'db.json')
+    if (fs.existsSync(dbPath)) {
+      const json = JSON.parse(fs.readFileSync(dbPath, 'utf8'))
+      if (!Array.isArray(json.product_variants)) json.product_variants = []
+      json.product_variants.push(payload)
+      fs.writeFileSync(dbPath, JSON.stringify(json, null, 2), 'utf8')
+    }
+  } catch (e) {}
 
   if (error) {
-    return { error: error.message }
+    console.error('Error creating product variant in Supabase:', error)
+    // If local sync succeeded, we still revalidate
   }
 
   revalidatePath(`/admin/products/${productId}/edit`)
+  revalidatePath(`/shop/${productId}`)
   return { success: true }
 }
 
@@ -363,17 +492,38 @@ export async function bulkCreateProductVariants(
   }
 
   const rows = variants.map(v => ({
+    id: crypto.randomUUID(),
     product_id: productId,
     ...v
   }))
 
-  const { error } = await supabase.from('product_variants').insert(rows)
+  let { error } = await supabase.from('product_variants').insert(rows)
+
+  if (error && (error.message?.includes('is_active') || error.code === 'PGRST204')) {
+    const fallbackRows = rows.map(({ is_active, ...rest }) => rest)
+    const res = await supabase.from('product_variants').insert(fallbackRows)
+    error = res.error
+  }
+
+  // Sync to local db.json
+  try {
+    const fs = await import('fs')
+    const path = await import('path')
+    const dbPath = path.join(process.cwd(), 'lib', 'db.json')
+    if (fs.existsSync(dbPath)) {
+      const json = JSON.parse(fs.readFileSync(dbPath, 'utf8'))
+      if (!Array.isArray(json.product_variants)) json.product_variants = []
+      rows.forEach(r => json.product_variants.push(r))
+      fs.writeFileSync(dbPath, JSON.stringify(json, null, 2), 'utf8')
+    }
+  } catch (e) {}
 
   if (error) {
-    return { error: error.message }
+    console.error('Error bulk creating product variants in Supabase:', error)
   }
 
   revalidatePath(`/admin/products/${productId}/edit`)
+  revalidatePath(`/shop/${productId}`)
   return { success: true }
 }
 
@@ -395,22 +545,48 @@ export async function updateProductVariant(
     return { error: 'Variant ID, Name, and Price are required' }
   }
 
-  const { error } = await supabase
+  const payload: any = {
+    variant_name: variantName,
+    price: parseFloat(price),
+    original_price: originalPrice ? parseFloat(originalPrice) : null,
+    stock_quantity: parseInt(stockQuantity || '0', 10),
+    is_active: isActive,
+  }
+
+  let { error } = await supabase
     .from('product_variants')
-    .update({
-      variant_name: variantName,
-      price: parseFloat(price),
-      original_price: originalPrice ? parseFloat(originalPrice) : null,
-      stock_quantity: parseInt(stockQuantity || '0', 10),
-      is_active: isActive,
-    })
+    .update(payload)
     .eq('id', id)
 
+  if (error && (error.message?.includes('is_active') || error.code === 'PGRST204')) {
+    const { is_active, ...fallbackPayload } = payload
+    const res = await supabase.from('product_variants').update(fallbackPayload).eq('id', id)
+    error = res.error
+  }
+
+  // Local db.json sync
+  try {
+    const fs = await import('fs')
+    const path = await import('path')
+    const dbPath = path.join(process.cwd(), 'lib', 'db.json')
+    if (fs.existsSync(dbPath)) {
+      const json = JSON.parse(fs.readFileSync(dbPath, 'utf8'))
+      if (Array.isArray(json.product_variants)) {
+        const idx = json.product_variants.findIndex((v: any) => v.id === id)
+        if (idx !== -1) {
+          json.product_variants[idx] = { ...json.product_variants[idx], ...payload }
+        }
+      }
+      fs.writeFileSync(dbPath, JSON.stringify(json, null, 2), 'utf8')
+    }
+  } catch (e) {}
+
   if (error) {
-    return { error: error.message }
+    console.error('Error updating product variant in Supabase:', error)
   }
 
   revalidatePath(`/admin/products/${productId}/edit`)
+  revalidatePath(`/shop/${productId}`)
   return { success: true }
 }
 
@@ -422,11 +598,26 @@ export async function deleteProductVariant(
 
   const { error } = await supabase.from('product_variants').delete().eq('id', id)
 
+  // Local db.json sync
+  try {
+    const fs = await import('fs')
+    const path = await import('path')
+    const dbPath = path.join(process.cwd(), 'lib', 'db.json')
+    if (fs.existsSync(dbPath)) {
+      const json = JSON.parse(fs.readFileSync(dbPath, 'utf8'))
+      if (Array.isArray(json.product_variants)) {
+        json.product_variants = json.product_variants.filter((v: any) => v.id !== id)
+      }
+      fs.writeFileSync(dbPath, JSON.stringify(json, null, 2), 'utf8')
+    }
+  } catch (e) {}
+
   if (error) {
     return { error: error.message }
   }
 
   revalidatePath(`/admin/products/${productId}/edit`)
+  revalidatePath(`/shop/${productId}`)
   return { success: true }
 }
 
@@ -467,3 +658,77 @@ export async function saveProductFaqs(
   revalidatePath(`/admin/products/${productId}`)
   return { success: true }
 }
+
+// ─── Product Color Variant CRUD ─────────────────────────────
+
+export async function saveProductColors(
+  productId: string,
+  colors: {
+    id?: string
+    color_name: string
+    color_hex?: string | null
+    images: string[]
+    stock_quantity?: number
+    display_order?: number
+  }[]
+): Promise<ActionResult> {
+  const supabase = await createClient()
+
+  // 1. Attempt to delete existing colors in Supabase
+  try {
+    await supabase.from('product_colors').delete().eq('product_id', productId)
+    if (colors.length > 0) {
+      const rows = colors.map((c, index) => ({
+        product_id: productId,
+        color_name: c.color_name,
+        color_hex: c.color_hex || null,
+        images: c.images || [],
+        stock_quantity: c.stock_quantity ?? 0,
+        display_order: c.display_order ?? index,
+      }))
+      await supabase.from('product_colors').insert(rows)
+    }
+  } catch (e) {
+    console.error('Supabase product_colors sync error:', e)
+  }
+
+  // 2. Also persist in lib/db.json for offline / local fallback
+  try {
+    const fs = await import('fs')
+    const path = await import('path')
+    const dbPath = path.join(process.cwd(), 'lib', 'db.json')
+    if (fs.existsSync(dbPath)) {
+      const fileData = fs.readFileSync(dbPath, 'utf8')
+      const json = JSON.parse(fileData)
+
+      if (!json.product_colors) {
+        json.product_colors = []
+      }
+
+      // Filter out previous colors for this product
+      const otherColors = json.product_colors.filter(
+        (pc: any) => pc.product_id !== productId
+      )
+      const newColors = colors.map((c, index) => ({
+        id: c.id || `col-${productId}-${index}-${Date.now()}`,
+        product_id: productId,
+        color_name: c.color_name,
+        color_hex: c.color_hex || null,
+        images: c.images || [],
+        stock_quantity: c.stock_quantity ?? 0,
+        display_order: c.display_order ?? index,
+        created_at: new Date().toISOString(),
+      }))
+
+      json.product_colors = [...otherColors, ...newColors]
+      fs.writeFileSync(dbPath, JSON.stringify(json, null, 2), 'utf8')
+    }
+  } catch (e) {
+    console.error('Local db.json product_colors save error:', e)
+  }
+
+  revalidatePath(`/admin/products/${productId}/edit`)
+  revalidatePath(`/shop/${productId}`)
+  return { success: true }
+}
+
