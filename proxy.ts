@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const hasMockCookie = request.cookies.get('mock-admin-logged-in')?.value === 'true'
   const hasCustomCookie = request.cookies.get('hijabistaa-user-session')?.value
   

@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import AdminSidebar from '@/components/admin/Sidebar'
 import AdminHeader from '@/components/admin/Header'
 
+export const dynamic = 'force-dynamic'
 export default async function AdminDashboardLayout({
   children,
 }: {
