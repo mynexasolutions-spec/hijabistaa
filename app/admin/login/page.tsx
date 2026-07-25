@@ -1,11 +1,12 @@
 'use client'
 
-import { useTransition, useState, useActionState } from 'react'
+import { useTransition, useState } from 'react'
+import { useFormState } from 'react-dom'
 import { adminLogin, type AuthResult } from '@/actions/auth'
 import { Eye, EyeOff, Shield } from 'lucide-react'
 
 export default function AdminLoginPage() {
-  const [state, formAction] = useActionState<AuthResult, FormData>(
+  const [state, formAction] = useFormState<AuthResult, FormData>(
     adminLogin,
     {}
   )

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useTransition, useActionState } from 'react'
+import { useState, useTransition } from 'react'
+import { useFormState } from 'react-dom'
 import { createCategory, updateCategory, type ActionResult } from '@/actions/categories'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -20,7 +21,7 @@ export default function CategoryForm({ category, parentCategories = [] }: Catego
   const [imageUrl, setImageUrl] = useState<string | null>(category?.image_url || null)
   const [isUploading, setIsUploading] = useState(false)
 
-  const [state, formAction] = useActionState<ActionResult, FormData>(
+  const [state, formAction] = useFormState<ActionResult, FormData>(
     action,
     {}
   )
