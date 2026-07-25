@@ -1,7 +1,6 @@
 'use client'
 
-import { useTransition, useState, useMemo } from 'react'
-import { useFormState } from 'react-dom'
+import { useTransition, useState, useMemo, useActionState } from 'react'
 import {
   createProduct,
   updateProduct,
@@ -23,7 +22,7 @@ export default function ProductForm({ product, categories, otherProducts = [] }:
   const isEditing = !!product
   const action = isEditing ? updateProduct : createProduct
 
-  const [state, formAction] = useFormState<ActionResult, FormData>(
+  const [state, formAction] = useActionState<ActionResult, FormData>(
     action,
     {}
   )

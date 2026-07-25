@@ -505,7 +505,7 @@ export async function adminLogin(
   cookieStore.set('hijabistaa-user-session', JSON.stringify({
     id: data.user.id,
     email: data.user.email,
-    full_name: profile.full_name || 'Admin',
+    full_name: profile?.full_name || 'Admin',
     role: 'admin'
   }), {
     path: '/',
