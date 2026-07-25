@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { CldUploadWidget } from 'next-cloudinary'
-import { Plus, X, Star, Loader2 } from 'lucide-react'
-import { addProductImage, deleteProductImage, setFeaturedImage } from '@/actions/products'
+import { Plus, X, Star, Loader2, Link2, Check } from 'lucide-react'
+import { addProductImage, deleteProductImage, setFeaturedImage, toggleImageColorMapping } from '@/actions/products'
 import Image from 'next/image'
 
 type ProductImage = {
@@ -21,9 +21,11 @@ type Product = {
 export function ProductImagesEditor({
   product,
   images,
+  colors = [],
 }: {
   product: Product
   images: ProductImage[]
+  colors?: any[]
 }) {
   const [isPending, startTransition] = useTransition()
   const [uploading, setUploading] = useState(false)
@@ -48,6 +50,12 @@ export function ProductImagesEditor({
   const handleSetFeatured = (imageUrl: string) => {
     startTransition(async () => {
       await setFeaturedImage(product.id, imageUrl)
+    })
+  }
+
+  const handleToggleMapping = (colorId: string, imageUrl: string, isMapped: boolean) => {
+    startTransition(async () => {
+      await toggleImageColorMapping(product.id, colorId, imageUrl, !isMapped)
     })
   }
 
@@ -88,50 +96,86 @@ export function ProductImagesEditor({
         {images.map((img) => {
           const isFeatured = product.featured_image_url === img.image_url
           return (
-            <div
-              key={img.id}
-              className={`relative group aspect-square rounded-lg overflow-hidden border-2 ${
-                isFeatured ? 'border-indigo-600' : 'border-gray-200'
-              }`}
-            >
-              <Image
-                src={img.image_url}
-                alt="Product image"
-                fill
-                className="object-cover"
-              />
-              
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(img.id)}
-                    disabled={isPending}
-                    className="p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
+            <div key={img.id} className="flex flex-col gap-2">
+              <div
+                className={`relative group aspect-square rounded-lg overflow-hidden border-2 ${
+                  isFeatured ? 'border-indigo-600' : 'border-gray-200'
+                }`}
+              >
+                <Image
+                  src={img.image_url}
+                  alt="Product image"
+                  fill
+                  sizes="300px"
+                  className="object-cover"
+                />
                 
-                <div className="flex justify-center mb-2">
-                  {!isFeatured && (
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
+                  <div className="flex justify-end">
                     <button
                       type="button"
-                      onClick={() => handleSetFeatured(img.image_url)}
+                      onClick={() => handleDelete(img.id)}
                       disabled={isPending}
-                      className="px-3 py-1.5 text-xs font-medium text-gray-900 bg-white rounded-full shadow-sm hover:bg-gray-50 transition-colors"
+                      className="p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors shadow-sm"
                     >
-                      Set as Featured
+                      <X className="w-4 h-4" />
                     </button>
-                  )}
-                  {isFeatured && (
-                    <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-indigo-700 bg-indigo-100 rounded-full">
-                      <Star className="w-3 h-3 mr-1 fill-current" />
-                      Featured
-                    </span>
-                  )}
+                  </div>
+                  
+                  <div className="flex justify-center mb-2">
+                    {!isFeatured && (
+                      <button
+                        type="button"
+                        onClick={() => handleSetFeatured(img.image_url)}
+                        disabled={isPending}
+                        className="px-3 py-1.5 text-xs font-medium text-gray-900 bg-white rounded-full shadow-sm hover:bg-gray-50 transition-colors"
+                      >
+                        Set as Featured
+                      </button>
+                    )}
+                    {isFeatured && (
+                      <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-indigo-700 bg-indigo-100 rounded-full">
+                        <Star className="w-3 h-3 mr-1 fill-current" />
+                        Featured
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
+
+              {colors.length > 0 && (
+                <div className="bg-stone-50 border border-stone-200 rounded-lg p-3">
+                  <div className="flex items-center gap-1.5 mb-2.5">
+                    <Link2 className="w-3.5 h-3.5 text-stone-400" />
+                    <span className="text-xs font-bold text-stone-600 uppercase tracking-wider">Map to Colors</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {colors.map((c) => {
+                      const isMapped = c.images?.includes(img.image_url)
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          disabled={isPending}
+                          onClick={() => handleToggleMapping(c.id, img.image_url, isMapped)}
+                          className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-semibold border transition-colors ${
+                            isMapped 
+                              ? 'bg-indigo-50 text-indigo-700 border-indigo-200' 
+                              : 'bg-white text-stone-500 border-stone-200 hover:border-stone-300'
+                          }`}
+                        >
+                          <span 
+                            className="w-2.5 h-2.5 rounded-full border border-black/10 shrink-0" 
+                            style={{ backgroundColor: c.color_hex || '#ccc' }} 
+                          />
+                          {c.color_name}
+                          {isMapped && <Check className="w-3 h-3 text-indigo-600" />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )
         })}

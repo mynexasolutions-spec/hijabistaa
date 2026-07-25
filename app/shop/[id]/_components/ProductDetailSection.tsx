@@ -25,6 +25,7 @@ interface ProductDetailSectionProps {
   images: string[]
   variants: ProductVariant[]
   colorVariants: ProductColorVariant[]
+  designs: string[]
   information: any[]
   faqs: any[]
   reviews: any[]
@@ -39,6 +40,7 @@ export default function ProductDetailSection({
   images,
   variants,
   colorVariants,
+  designs,
   information,
   faqs,
   reviews,
@@ -80,27 +82,9 @@ export default function ProductDetailSection({
   // Current active main image index in allImages
   const [activeIndex, setActiveIndex] = useState<number>(0)
 
-  // Handle color button click: toggle selected color & jump main image if adding
+  // Handle color button click: select color (do not change image as per request)
   const handleSelectColor = (color: ProductColorVariant) => {
-    setSelectedColors(prev => {
-      const exists = prev.some(c => c.id === color.id)
-      if (exists) {
-        return prev.filter(c => c.id !== color.id)
-      } else {
-        return [...prev, color]
-      }
-    })
-    
-    // If not already selected, jump to its image
-    if (!selectedColors.some(c => c.id === color.id)) {
-      if (color && color.images && color.images.length > 0) {
-        const targetImg = color.images[0]
-        const foundIdx = allImages.indexOf(targetImg)
-        if (foundIdx !== -1) {
-          setActiveIndex(foundIdx)
-        }
-      }
-    }
+    setSelectedColors([color])
   }
 
   // Handle thumbnail click on the left: set active image & auto-sync color button if matching
@@ -110,12 +94,7 @@ export default function ProductDetailSection({
     if (clickedImg && colorVariants && colorVariants.length > 0) {
       const matchingColor = colorVariants.find(c => c.images && c.images.includes(clickedImg))
       if (matchingColor) {
-        setSelectedColors(prev => {
-          if (!prev.some(c => c.id === matchingColor.id)) {
-            return [...prev, matchingColor]
-          }
-          return prev
-        })
+        setSelectedColors([matchingColor])
       }
     }
   }
@@ -133,7 +112,7 @@ export default function ProductDetailSection({
       />
 
       {/* Right: Product Details & Purchase Form */}
-      <div className="space-y-8">
+      <div className="space-y-5">
         <div>
           <span className="text-xs uppercase tracking-wider text-gold font-bold">
             {categoryName}
@@ -160,13 +139,14 @@ export default function ProductDetailSection({
           product={{
             id: productData.id,
             name: productData.name,
-            image_url: allImages[activeIndex] || allImages[0] || "/image.png",
             category_name: categoryName,
             price: productData.price != null ? Number(productData.price) : undefined,
             oldPrice: productData.oldPrice != null ? Number(productData.oldPrice) : (productData.original_price != null ? Number(productData.original_price) : undefined),
+            image_url: allImages[activeIndex] || allImages[0] || "/image.png",
             size: productData.size,
             variants: variants,
-            colorVariants: colorVariants
+            colorVariants: colorVariants,
+            designs: designs
           }}
           selectedColors={selectedColors}
           onSelectColor={handleSelectColor}

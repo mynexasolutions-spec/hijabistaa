@@ -4,10 +4,10 @@ import type { Metadata } from 'next'
 import ProductForm, { ProductSubmitButton } from '../../_components/ProductForm'
 import ProductInfoEditor from '../../_components/ProductInfoEditor'
 import ProductFaqEditor from '../../_components/ProductFaqEditor'
-import { ProductVariantsEditor } from '../../_components/ProductVariantsEditor'
 import { ProductImagesEditor } from '../../_components/ProductImagesEditor'
 import ProductColorEditor from '../../_components/ProductColorEditor'
-import { ArrowLeft, Save, Eye } from 'lucide-react'
+import { ProductDesignsEditor } from '../../_components/ProductDesignsEditor'
+import { ArrowLeft, Save, Eye, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -113,8 +113,48 @@ export default async function EditProductPage({
     } catch (e) {}
   }
 
+  let allInfo = infoRes.data || []
+  
+  // db.json fallback for product_information
+  if (allInfo.length === 0) {
+    try {
+      const fs = await import('fs')
+      const path = await import('path')
+      const dbPath = path.join(process.cwd(), 'lib', 'db.json')
+      if (fs.existsSync(dbPath)) {
+        const fileData = fs.readFileSync(dbPath, 'utf8')
+        const json = JSON.parse(fileData)
+        if (Array.isArray(json.product_information)) {
+          allInfo = json.product_information.filter((pi: any) => pi.product_id === id)
+        }
+      }
+    } catch (e) {}
+  }
+
+  const initialDesigns = allInfo
+    .filter((info: any) => info.label === 'Design')
+    .map((info: any) => info.value)
+
+  const initialInfoItems = allInfo
+    .filter((info: any) => info.label !== 'Design')
+
+  const unmappedColors = initialColors.filter((c: any) => !c.images || c.images.length === 0)
+
   return (
     <div className="max-w-6xl space-y-6">
+      {unmappedColors.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
+          <div>
+            <h3 className="text-sm font-bold text-amber-900">Missing Color Image Mappings</h3>
+            <p className="text-sm text-amber-700 mt-1">
+              The following colors do not have any images mapped to them: <strong>{unmappedColors.map((c: any) => c.color_name).join(', ')}</strong>.
+              <br/>Customers selecting these colors will see the default product image.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between pb-4 border-b border-stone-200">
         <Link
           href="/admin/products"
@@ -155,16 +195,23 @@ export default async function EditProductPage({
         initialColors={initialColors}
       />
 
+      {/* Designs Editor */}
+      <ProductDesignsEditor
+        productId={id}
+        initialDesigns={initialDesigns}
+      />
+
       {/* Additional Info & FAQs only shown when editing */}
       <ProductInfoEditor
         productId={id}
-        initialItems={infoRes.data || []}
+        initialItems={initialInfoItems}
       />
 
       <div className="bg-white p-6 shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
         <ProductImagesEditor
           product={productRes.data}
           images={imagesRes.data || []}
+          colors={initialColors}
         />
       </div>
 

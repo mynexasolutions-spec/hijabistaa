@@ -119,13 +119,15 @@ export async function getUserOrdersAction() {
     return { success: false, error: error?.message || 'Failed to load orders', orders: [], isGuest: false }
   }
 
-  // Collect all product IDs
-  const allProductIds = Array.from(new Set(
-    userOrders.flatMap(o => (o.order_items || []).map((i: any) => i.product_id)).filter(Boolean)
-  ))
-
+  // Collect all product IDs and color names
+  const items = userOrders.flatMap(o => o.order_items || [])
+  const allProductIds = Array.from(new Set(items.map((i: any) => i.product_id).filter(Boolean)))
+  
   let productsById: Record<string, string> = {}
+  let colorImagesByProductAndColor: Record<string, string> = {}
+
   if (allProductIds.length > 0) {
+    // Fetch product main images
     const { data: productsData } = await supabase
       .from('products')
       .select('id, featured_image_url, product_images ( image_url )')
@@ -135,14 +137,34 @@ export async function getUserOrdersAction() {
       acc[p.id] = p.product_images?.[0]?.image_url || p.featured_image_url || null
       return acc
     }, {})
+
+    // Fetch product colors to get color-specific images
+    const { data: colorsData } = await supabase
+      .from('product_colors')
+      .select('product_id, color_name, images')
+      .in('product_id', allProductIds)
+
+    if (colorsData) {
+      colorsData.forEach((c: any) => {
+        if (c.images && c.images.length > 0) {
+          const key = `${c.product_id}-${c.color_name}`
+          colorImagesByProductAndColor[key] = c.images[0]
+        }
+      })
+    }
   }
 
   const enrichedOrders = userOrders.map(order => ({
     ...order,
-    order_items: (order.order_items || []).map((item: any) => ({
-      ...item,
-      image_url: productsById[item.product_id] || null
-    }))
+    order_items: (order.order_items || []).map((item: any) => {
+      const colorKey = `${item.product_id}-${item.color_name}`
+      const specificImage = colorImagesByProductAndColor[colorKey]
+      
+      return {
+        ...item,
+        image_url: specificImage || productsById[item.product_id] || null
+      }
+    })
   }))
 
   return { success: true, orders: enrichedOrders, isGuest: false }

@@ -594,12 +594,26 @@ export default function CheckoutForm({ shipping, isLoggedIn }: { shipping: Shipp
                       <Link href={`/shop/${item.id}`} className="hover:text-emerald transition-colors">
                         <h4 className="font-semibold text-ink text-sm leading-snug line-clamp-2">{item.name}</h4>
                       </Link>
-                      <span className="font-semibold text-emerald text-base shrink-0">
+                      <span className="font-semibold text-emerald shrink-0 text-lg">
                         ₹{(item.price * item.quantity).toLocaleString('en-IN')}
                       </span>
                     </div>
-                    <p className="text-xs text-ink/40">
-                      {item.variant_name ? `${item.variant_name} • ` : ''}₹{item.price} each
+                    <div className="flex flex-wrap items-center gap-1.5 text-[11px] sm:text-xs text-ink/60 font-medium">
+                      {item.category_name && <span>{item.category_name}</span>}
+                      {item.category_name && (item.color_name || item.variant_name || item.design) && (
+                        <span className="text-ink/30">•</span>
+                      )}
+                      
+                      {item.color_name && <span>Color: <span className="text-ink/80">{item.color_name}</span></span>}
+                      {item.color_name && (item.variant_name || item.design) && <span className="text-ink/30">•</span>}
+                      
+                      {item.variant_name && <span>Size: <span className="text-ink/80">{item.variant_name}</span></span>}
+                      {item.variant_name && item.design && <span className="text-ink/30">•</span>}
+                      
+                      {item.design && <span>Design: <span className="text-ink/80">{item.design}</span></span>}
+                    </div>
+                    <p className="text-[11px] font-semibold text-ink/40">
+                      ₹{item.price.toLocaleString('en-IN')} each
                     </p>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center border border-cream-line rounded-full p-0.5">

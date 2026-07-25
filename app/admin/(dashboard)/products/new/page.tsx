@@ -3,7 +3,6 @@ import type { Metadata } from 'next'
 import ProductForm, { ProductSubmitButton } from '../_components/ProductForm'
 import ProductInfoEditor from '../_components/ProductInfoEditor'
 import ProductFaqEditor from '../_components/ProductFaqEditor'
-import { ProductVariantsEditor } from '../_components/ProductVariantsEditor'
 import { ProductImagesEditor } from '../_components/ProductImagesEditor'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -55,10 +54,7 @@ export default async function NewProductPage() {
          <div className="space-y-6 opacity-60 pointer-events-none select-none">
             <ProductInfoEditor productId="" initialItems={[]} />
             <div className="bg-white p-6 shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
-              <ProductVariantsEditor productId="" variants={[]} />
-            </div>
-            <div className="bg-white p-6 shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
-              <ProductImagesEditor product={null as any} images={[]} />
+              <ProductImagesEditor product={null as any} images={[]} colors={[]} />
             </div>
             <ProductFaqEditor productId="" initialItems={[]} initialUseGlobal={false} />
          </div>
