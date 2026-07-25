@@ -14,37 +14,42 @@ export const metadata: Metadata = {
 }
 
 async function getStats() {
-  const supabase = await createClient()
+  try {
+    const supabase = await createClient()
 
-  const [ordersRes, customersRes, productsRes, recentOrdersRes] =
-    await Promise.all([
-      supabase
-        .from('orders')
-        .select('id, total_amount', { count: 'exact', head: false }),
-      supabase
-        .from('customers')
-        .select('*', { count: 'exact', head: true }),
-      supabase
-        .from('products')
-        .select('id', { count: 'exact', head: true }),
-      supabase
-        .from('orders')
-        .select('id, order_number, total_amount, order_status, payment_status, created_at')
-        .order('created_at', { ascending: false })
-        .limit(5),
-    ])
+    const [ordersRes, customersRes, productsRes, recentOrdersRes] =
+      await Promise.all([
+        supabase
+          .from('orders')
+          .select('id, total_amount', { count: 'exact', head: false }),
+        supabase
+          .from('customers')
+          .select('*', { count: 'exact', head: true }),
+        supabase
+          .from('products')
+          .select('id', { count: 'exact', head: true }),
+        supabase
+          .from('orders')
+          .select('id, order_number, total_amount, order_status, payment_status, created_at')
+          .order('created_at', { ascending: false })
+          .limit(5),
+      ])
 
-  const totalOrders = ordersRes.count || 0
-  const totalRevenue =
-    ordersRes.data?.reduce(
-      (sum, order) => sum + (Number(order.total_amount) || 0),
-      0
-    ) || 0
-  const totalCustomers = customersRes.count || 0
-  const totalProducts = productsRes.count || 0
-  const recentOrders = recentOrdersRes.data || []
+    const totalOrders = ordersRes?.count || 0
+    const totalRevenue =
+      (ordersRes?.data || []).reduce(
+        (sum, order) => sum + (Number(order?.total_amount) || 0),
+        0
+      ) || 0
+    const totalCustomers = customersRes?.count || 0
+    const totalProducts = productsRes?.count || 0
+    const recentOrders = recentOrdersRes?.data || []
 
-  return { totalOrders, totalRevenue, totalCustomers, totalProducts, recentOrders }
+    return { totalOrders, totalRevenue, totalCustomers, totalProducts, recentOrders }
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error)
+    return { totalOrders: 0, totalRevenue: 0, totalCustomers: 0, totalProducts: 0, recentOrders: [] }
+  }
 }
 
 const statusColors: Record<string, string> = {
@@ -199,11 +204,11 @@ export default async function AdminDashboardPage() {
                       </span>
                     </td>
                     <td className="px-6 py-3.5 text-sm text-stone-500">
-                      {new Date(order.created_at).toLocaleDateString('en-IN', {
+                      {order.created_at ? new Date(order.created_at).toLocaleDateString('en-IN', {
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric',
-                      })}
+                      }) : 'N/A'}
                     </td>
                   </tr>
                 ))}
