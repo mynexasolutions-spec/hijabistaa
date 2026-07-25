@@ -228,7 +228,7 @@ export default function ProductColorEditor({
             <h3 className="text-lg font-bold text-stone-900">Color Variants</h3>
           </div>
           <p className="text-stone-500 text-xs mt-1">
-            Add multiple colors for this product. Upload color-specific images for each variant (Black, White, Wine, Beige, etc.).
+            Add multiple colors for this product (Black, White, Wine, Beige, etc.).
           </p>
         </div>
 
@@ -355,11 +355,11 @@ export default function ProductColorEditor({
           <Palette className="w-8 h-8 text-stone-300 mx-auto" />
           <p className="text-sm font-semibold text-stone-600">No color variants added yet.</p>
           <p className="text-xs text-stone-400">
-            Click on any color preset above (Black, White, Beige, Wine, etc.) to start adding color variants and uploading images.
+            Click on any color preset above (Black, White, Beige, Wine, etc.) to start adding color variants.
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 items-start">
           {colors.map((c, index) => (
             <div
               key={c.id}
@@ -375,21 +375,11 @@ export default function ProductColorEditor({
                   <div>
                     <h4 className="font-bold text-stone-900 text-sm">
                       {c.color_name || 'Unnamed Color'}
-                      <span className="ml-2 font-normal text-xs text-stone-500">
-                        ({c.images.length} {c.images.length === 1 ? 'image' : 'images'})
-                      </span>
                     </h4>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => toggleExpand(c.id)}
-                    className="p-1.5 text-stone-500 hover:text-stone-900 rounded-lg hover:bg-stone-200/60 transition-colors"
-                  >
-                    {c.is_expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </button>
                   <button
                     type="button"
                     onClick={() => removeColorVariant(c.id)}
@@ -400,102 +390,6 @@ export default function ProductColorEditor({
                   </button>
                 </div>
               </div>
-
-              {/* Color Details Body */}
-              {c.is_expanded && (
-                <div className="p-5 space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-stone-600 mb-1">Color Name</label>
-                      <input
-                        type="text"
-                        value={c.color_name}
-                        onChange={e => updateColorField(c.id, 'color_name', e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-stone-200 text-sm text-stone-900"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-stone-600 mb-1">Stock Quantity</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={c.stock_quantity}
-                        onChange={e => updateColorField(c.id, 'stock_quantity', parseInt(e.target.value || '0', 10))}
-                        className="w-full px-3 py-2 rounded-lg border border-stone-200 text-sm text-stone-900"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Images Upload & Gallery for this Color */}
-                  <div className="space-y-3 pt-3 border-t border-stone-200/70">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-stone-700 uppercase tracking-wider flex items-center gap-1.5">
-                        <ImageIcon className="w-4 h-4 text-orange-600" /> Images for {c.color_name}
-                      </label>
-
-                      {/* Cloudinary Widget or URL Input */}
-                      <div className="flex gap-2">
-                        <CldUploadWidget
-                          signatureEndpoint="/api/cloudinary/sign"
-                          onSuccess={(result: any) => {
-                            if (result.info && result.info.secure_url) {
-                              addImageToColor(c.id, result.info.secure_url)
-                            }
-                          }}
-                          options={{ multiple: true, maxFiles: 10 }}
-                        >
-                          {({ open }) => (
-                            <button
-                              type="button"
-                              onClick={() => open()}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 text-white text-xs font-semibold rounded-lg hover:bg-orange-700 transition-colors shadow-sm"
-                            >
-                              <Upload className="w-3.5 h-3.5" /> Upload Images
-                            </button>
-                          )}
-                        </CldUploadWidget>
-                      </div>
-                    </div>
-
-                    {/* Grid of uploaded images for this color */}
-                    {c.images.length === 0 ? (
-                      <p className="text-xs text-stone-400 italic py-2">
-                        No images assigned to {c.color_name} yet. Click &quot;Upload Images&quot; above.
-                      </p>
-                    ) : (
-                      <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-3 pt-2">
-                        {c.images.map((imgUrl, imgIdx) => (
-                          <div
-                            key={imgIdx}
-                            className="relative group aspect-square rounded-xl overflow-hidden border border-stone-200 bg-stone-100 shadow-sm"
-                          >
-                            <Image
-                              src={imgUrl}
-                              alt={`${c.color_name} image ${imgIdx + 1}`}
-                              fill
-                              sizes="120px"
-                              className="object-cover"
-                            />
-                            {imgIdx === 0 && (
-                              <span className="absolute top-1 left-1 bg-stone-900/80 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                                Main
-                              </span>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => removeImageFromColor(c.id, imgUrl)}
-                              className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                              title="Delete Image"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           ))}
         </div>

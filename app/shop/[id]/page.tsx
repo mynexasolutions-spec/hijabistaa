@@ -152,6 +152,43 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   // Compile information
   let information = productData.product_information || []
+
+  // Compile designs
+  let productDesigns: string[] = []
+  if (information.length > 0) {
+    productDesigns = information
+      .filter((info: any) => info.label === 'Design')
+      .map((info: any) => info.value)
+  }
+
+  // db.json fallback for designs and information if empty
+  if (productDesigns.length === 0) {
+    try {
+      const fs = await import('fs')
+      const path = await import('path')
+      const dbPath = path.join(process.cwd(), 'lib', 'db.json')
+      if (fs.existsSync(dbPath)) {
+        const json = JSON.parse(fs.readFileSync(dbPath, 'utf8'))
+        if (Array.isArray(json.product_information)) {
+          const localDesigns = json.product_information
+            .filter((pi: any) => pi.product_id === productData.id && pi.label === 'Design')
+            .map((pi: any) => pi.value)
+          if (localDesigns.length > 0) {
+            productDesigns = localDesigns
+          }
+          
+          if (information.length === 0) {
+            const localInfo = json.product_information.filter((pi: any) => pi.product_id === productData.id && pi.label !== 'Design')
+            information = localInfo
+          }
+        }
+      }
+    } catch (e) {}
+  }
+
+  // Remove designs from the general information tab
+  information = information.filter((info: any) => info.label !== 'Design')
+
   if (productData.fabric) {
     information.push({ label: 'Fabric Details', value: productData.fabric, display_order: -2 })
   }
@@ -159,7 +196,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     information.push({ label: 'Stitching Details', value: productData.stitching, display_order: -1 })
   }
   
-
   information.sort((a: any, b: any) => a.display_order - b.display_order)
 
   let faqs = productData.product_faqs || []
@@ -402,6 +438,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             images={images}
             variants={variants}
             colorVariants={productColors}
+            designs={productDesigns}
             information={information}
             faqs={faqs}
             reviews={reviews}

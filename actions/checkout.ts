@@ -58,6 +58,9 @@ export async function createOrder(addressId: string, paymentMethod: string, cart
       product_name: item.name,
       variant_name: item.variant_name || 'Default',
       color_name: item.color_name || null,
+      size: item.variant_name || null,
+      design: item.design || null,
+      image_url: item.image_url || null,
       price_at_purchase: price,
       quantity: quantity,
       line_total: lineTotal

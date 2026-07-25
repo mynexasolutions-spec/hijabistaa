@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { ArrowLeft, User, MapPin, Package, CreditCard } from 'lucide-react'
 import { OrderStatusManager } from '../_components/OrderStatusManager'
 import { DeleteOrderButton } from '../_components/DeleteOrderButton'
+import { CopyIdButton } from '../_components/CopyIdButton'
 
 export const metadata = {
   title: 'Order Details | Admin Dashboard',
@@ -147,7 +148,9 @@ export default async function AdminOrderDetailsPage({
                 <thead className="bg-stone-50 text-stone-500 uppercase tracking-wider text-xs">
                   <tr>
                     <th className="px-6 py-4 font-semibold">Product</th>
-                    <th className="px-6 py-4 font-semibold">Variant</th>
+                    <th className="px-6 py-4 font-semibold">Size</th>
+                    <th className="px-6 py-4 font-semibold">Color</th>
+                    <th className="px-6 py-4 font-semibold">Design</th>
                     <th className="px-6 py-4 font-semibold">Product ID</th>
                     <th className="px-6 py-4 font-semibold">Unit Price</th>
                     <th className="px-6 py-4 font-semibold">Qty</th>
@@ -159,10 +162,11 @@ export default async function AdminOrderDetailsPage({
                     const product = item.product_id ? productsById[item.product_id] : null
                     const href = product?.is_active ? `/shop/${item.product_id}` : null
 
+                    const imgSource = item.image_url || product?.image_url
                     const thumbnail = (
                       <div className="relative w-12 h-14 rounded-lg overflow-hidden shrink-0 border border-stone-200 bg-stone-100">
-                        {product?.image_url ? (
-                          <Image src={product.image_url} alt={item.product_name} fill className="object-cover" />
+                        {imgSource ? (
+                          <Image src={imgSource} alt={item.product_name} fill className="object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-stone-300 text-[10px] font-medium">
                             IMG
@@ -193,8 +197,14 @@ export default async function AdminOrderDetailsPage({
                             </div>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-stone-600">{item.variant_name}</td>
-                        <td className="px-6 py-4 text-stone-400 text-xs">{item.product_id || '—'}</td>
+                        <td className="px-6 py-4 text-stone-600 text-[13px]">
+                          {item.size || (!item.color_name && !item.design && item.variant_name !== 'Default' ? item.variant_name : '—')}
+                        </td>
+                        <td className="px-6 py-4 text-stone-600 text-[13px]">{item.color_name || '—'}</td>
+                        <td className="px-6 py-4 text-stone-600 text-[13px]">{item.design || '—'}</td>
+                        <td className="px-6 py-4">
+                          {item.product_id ? <CopyIdButton id={item.product_id} /> : <span className="text-stone-400 text-xs">—</span>}
+                        </td>
                         <td className="px-6 py-4 text-stone-600">₹{item.price_at_purchase}</td>
                         <td className="px-6 py-4 text-stone-600">{item.quantity}</td>
                         <td className="px-6 py-4 font-medium text-stone-900 text-right">₹{item.line_total}</td>

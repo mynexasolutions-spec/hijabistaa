@@ -5,7 +5,7 @@ import { useCart } from '@/context/CartContext'
 import { useWishlist } from '@/context/WishlistContext'
 import { useToast } from '@/context/ToastContext'
 import { useRouter } from 'next/navigation'
-import { ShoppingBag, CreditCard, Plus, Minus, Heart, Check } from 'lucide-react'
+import { ShoppingBag, CreditCard, Plus, Minus, Heart, Check, ChevronDown } from 'lucide-react'
 
 export type ProductVariant = {
   id: string
@@ -34,6 +34,7 @@ type ProductItem = {
   size?: string | null
   variants?: ProductVariant[]
   colorVariants?: ProductColorVariant[]
+  designs?: string[]
 }
 
 interface ProductDetailActionsProps {
@@ -52,6 +53,11 @@ export default function ProductDetailActions({
   const { showToast } = useToast()
   const router = useRouter()
   const [quantity, setQuantity] = useState(1)
+  const [isColorDropdownOpen, setIsColorDropdownOpen] = useState(false)
+  const [isDesignDropdownOpen, setIsDesignDropdownOpen] = useState(false)
+
+  const productDesigns = product.designs && product.designs.length > 0 ? product.designs : []
+  const [selectedDesign, setSelectedDesign] = useState<string>('')
 
   const colorVariants = product.colorVariants || []
 
@@ -89,7 +95,7 @@ export default function ProductDetailActions({
   // If a single item is in cart (when no colors or 1 color), we could sync quantity.
   // For multiple colors, we'll just default to 1 and let them add more.
   const isSingleSelection = selectedColors.length <= 1;
-  const singleCartItemId = `${product.id}-${selectedColors[0]?.color_name || 'default'}-${selectedSize || 'default'}`;
+  const singleCartItemId = `${product.id}-${selectedColors[0]?.color_name || 'default'}-${selectedSize || 'default'}-${selectedDesign || 'default'}`;
   const cartItem = isSingleSelection ? cart.find(item => item.cartItemId === singleCartItemId) : null;
   const currentQty = cartItem ? cartItem.quantity : 0;
 
@@ -129,7 +135,7 @@ export default function ProductDetailActions({
     if (colorVariants.length > 0) {
       // Loop through each selected color and add to cart
       selectedColors.forEach(color => {
-        const specificCartItemId = `${product.id}-${color.color_name}-${selectedSize || 'default'}`
+        const specificCartItemId = `${product.id}-${color.color_name}-${selectedSize || 'default'}-${selectedDesign || 'default'}`
         const specificCartItem = cart.find(item => item.cartItemId === specificCartItemId)
         
         if (specificCartItem && selectedColors.length === 1) {
@@ -140,10 +146,11 @@ export default function ProductDetailActions({
               id: product.id,
               name: product.name,
               price: currentPrice,
-              image_url: product.image_url,
+              image_url: (color.images && color.images.length > 0) ? color.images[0] : product.image_url,
               category_name: product.category_name,
               color_name: color.color_name,
-              variant_name: selectedSize || product.size || undefined
+              variant_name: selectedSize || product.size || undefined,
+              design: selectedDesign || undefined
             })
           }
         }
@@ -167,7 +174,8 @@ export default function ProductDetailActions({
             image_url: product.image_url,
             category_name: product.category_name,
             color_name: undefined,
-            variant_name: selectedSize || product.size || undefined
+            variant_name: selectedSize || product.size || undefined,
+            design: selectedDesign || undefined
           })
         }
         showToast(`${quantity} × ${product.name} ${selectedSize ? `[${selectedSize}]` : ''} added to cart!`, "success")
@@ -198,10 +206,10 @@ export default function ProductDetailActions({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       
       {/* Dynamic Price Display */}
-      <div className="flex items-center justify-between pt-3 border-t border-cream-line/50">
+      <div className="flex items-center justify-between pt-2 border-t border-cream-line/50">
         <div className="flex items-baseline gap-3">
           <span className="font-display font-bold text-3xl text-emerald">
             ₹{Number(currentPrice).toLocaleString('en-IN')}
@@ -222,91 +230,168 @@ export default function ProductDetailActions({
 
       {/* 1. Color Selector (Styled matching screenshot: circular swatches with checkmarks & centered labels below) */}
       {colorVariants.length > 0 && (
-        <div className="space-y-3 pt-2 border-t border-cream-line/40">
+        <div className="space-y-2 pt-1.5 border-t border-cream-line/40">
           <div className="flex justify-between items-center">
             <h3 className="text-sm font-bold text-ink tracking-tight">
               Select Color(s): <span className="font-medium text-ink/80">{selectedColors.map(c => c.color_name).join(', ')}</span>
             </h3>
           </div>
 
-          <div className="flex flex-wrap items-start gap-4 sm:gap-6 pt-1">
-            {colorVariants.map((c) => {
-              const isSelected = selectedColors.some(sc => sc.id === c.id || sc.color_name === c.color_name)
-              const hexVal = (c.color_hex || '#E6DAC4').toLowerCase()
-              const isLightColor = hexVal === '#ffffff' || hexVal === '#fff' || hexVal === 'white' || hexVal === '#f7e7ce' || hexVal === '#e6dac4'
+          <div className="relative pt-1">
+            <button
+              type="button"
+              onClick={() => setIsColorDropdownOpen(!isColorDropdownOpen)}
+              className="w-full flex items-center justify-between border-2 border-cream-line rounded-xl px-3.5 py-2.5 bg-white text-ink text-sm hover:border-emerald/40 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald/20 shadow-sm"
+            >
+              <span className="truncate font-medium">
+                {selectedColors.length > 0 
+                  ? selectedColors.map(c => c.color_name).join(', ') 
+                  : "Select Color"}
+              </span>
+              <ChevronDown className={`w-5 h-5 text-ink/50 transition-transform ${isColorDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
 
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => onSelectColor && onSelectColor(c)}
-                  title={c.color_name}
-                  className="flex flex-col items-center group focus:outline-none"
-                >
-                  <div
-                    className={`relative w-11 h-11 rounded-full p-[2.5px] transition-all duration-200 flex items-center justify-center ${
-                      isSelected
-                        ? 'border-2 border-ink shadow-md scale-105'
-                        : 'border border-stone-200 bg-white shadow-sm hover:scale-105 hover:border-stone-300'
-                    }`}
-                  >
-                    <span
-                      className="w-full h-full rounded-full border border-black/10 flex items-center justify-center shadow-inner transition-transform"
-                      style={{ backgroundColor: c.color_hex || '#E6DAC4' }}
-                    >
-                      {isSelected && (
-                        <Check className={`w-3.5 h-3.5 stroke-[2.5] ${isLightColor ? 'text-ink' : 'text-white'}`} />
-                      )}
-                    </span>
-                  </div>
-                  <span className={`text-[12px] font-medium mt-1.5 text-center transition-colors ${isSelected ? 'text-ink font-semibold' : 'text-ink/70 group-hover:text-ink'}`}>
-                    {c.color_name}
-                  </span>
-                </button>
-              )
-            })}
+            {isColorDropdownOpen && (
+              <div className="absolute z-10 top-full left-0 w-full mt-2 bg-white border border-cream-line rounded-xl shadow-xl max-h-60 overflow-y-auto overflow-hidden">
+                <div className="p-1">
+                  {(() => {
+                    const activeMappedColors = colorVariants.filter(c => c.images?.includes(product.image_url))
+                    const optionsToShow = activeMappedColors.length > 0 ? activeMappedColors : colorVariants
+                    return optionsToShow.map((c) => {
+                      const isSelected = selectedColors.some(sc => sc.id === c.id || sc.color_name === c.color_name)
+                      return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          if (onSelectColor) onSelectColor(c)
+                          setIsColorDropdownOpen(false)
+                        }}
+                        className={`w-full flex items-center px-4 py-3 rounded-lg hover:bg-emerald/5 transition-colors focus:outline-none ${isSelected ? 'bg-emerald/5' : ''}`}
+                      >
+                        <div
+                          className="w-6 h-6 rounded-full border border-black/10 mr-3 flex-shrink-0 shadow-sm"
+                          style={{ backgroundColor: c.color_hex || '#E6DAC4' }}
+                        />
+                        <span className={`text-sm ${isSelected ? 'font-bold text-emerald' : 'font-medium text-ink/80'}`}>
+                          {c.color_name}
+                        </span>
+                        {isSelected && <Check className="w-4 h-4 ml-auto text-emerald stroke-[3]" />}
+                      </button>
+                    )
+                  })})()}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* 2. Size Selector (Supports multiple sizes entered by admin) */}
-      {availableSizes.length > 0 && (
-        <div className="space-y-2.5 pt-2 border-t border-cream-line/40">
-          <div className="flex justify-between items-center">
-            <span className="text-[13px] uppercase tracking-wider font-bold text-ink/70">
-              Select Size
-              {selectedSize && (
-                <span className="ml-2 font-semibold text-emerald normal-case">
-                  ({selectedSize})
+      {/* 2 & 3. Size and Design Selectors */}
+      {(availableSizes.length > 0 || productDesigns.length > 0) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-cream-line/40">
+          
+          {/* Size Selector */}
+          {availableSizes.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-[13px] uppercase tracking-wider font-bold text-ink/70">
+                  Select Size
+                  {selectedSize && (
+                    <span className="ml-2 font-semibold text-emerald normal-case">
+                      ({selectedSize})
+                    </span>
+                  )}
                 </span>
-              )}
-            </span>
-          </div>
+              </div>
 
-          <div className="flex flex-wrap gap-2.5">
-            {availableSizes.map((sz) => {
-              const isSelected = selectedSize === sz
-              return (
+              <div className="flex flex-wrap gap-2">
+                {availableSizes.map((sz) => {
+                  const isSelected = selectedSize === sz
+                  return (
+                    <button
+                      key={sz}
+                      type="button"
+                      onClick={() => setSelectedSize(sz)}
+                      className={`min-w-[3.5rem] h-9 px-3.5 rounded-xl text-xs font-bold flex items-center justify-center transition-all duration-200 border-2 ${
+                        isSelected
+                          ? 'border-emerald text-emerald bg-emerald/5 shadow-sm scale-[1.02] ring-2 ring-emerald/20'
+                          : 'border-cream-line text-ink/80 hover:border-emerald/40 hover:text-emerald bg-white shadow-xs'
+                      }`}
+                    >
+                      {sz}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Design Selector */}
+          {productDesigns.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <h3 className="text-[13px] uppercase tracking-wider font-bold text-ink/70">
+                  Select Design
+                </h3>
+              </div>
+
+              <div className="relative pt-1">
                 <button
-                  key={sz}
                   type="button"
-                  onClick={() => setSelectedSize(sz)}
-                  className={`min-w-[3.5rem] h-10 px-4 rounded-xl text-xs font-bold flex items-center justify-center transition-all duration-200 border-2 ${
-                    isSelected
-                      ? 'border-emerald text-emerald bg-emerald/5 shadow-sm scale-[1.02] ring-2 ring-emerald/20'
-                      : 'border-cream-line text-ink/80 hover:border-emerald/40 hover:text-emerald bg-white shadow-xs'
-                  }`}
+                  onClick={() => setIsDesignDropdownOpen(!isDesignDropdownOpen)}
+                  className="w-full flex items-center justify-between border-2 border-cream-line rounded-xl px-3.5 py-2.5 bg-white text-ink text-sm hover:border-emerald/40 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald/20 shadow-sm"
                 >
-                  {sz}
+                  <span className="truncate font-medium">
+                    {selectedDesign || "Select Design"}
+                  </span>
+                  <ChevronDown className={`w-5 h-5 text-ink/50 transition-transform ${isDesignDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
-              )
-            })}
-          </div>
+
+                {isDesignDropdownOpen && (
+                  <div className="absolute z-10 top-full left-0 w-full mt-2 bg-white border border-cream-line rounded-xl shadow-xl max-h-60 overflow-y-auto overflow-hidden">
+                    <div className="p-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedDesign('')
+                          setIsDesignDropdownOpen(false)
+                        }}
+                        className={`w-full flex items-center px-4 py-3 rounded-lg hover:bg-emerald/5 transition-colors focus:outline-none ${!selectedDesign ? 'bg-emerald/5 text-emerald font-bold' : 'text-ink/80 font-medium'}`}
+                      >
+                        <span className="text-sm">Select Design</span>
+                        {!selectedDesign && <Check className="w-4 h-4 ml-auto text-emerald stroke-[3]" />}
+                      </button>
+                      {productDesigns.map((d) => {
+                        const isSelected = selectedDesign === d
+                        return (
+                          <button
+                            key={d}
+                            type="button"
+                            onClick={() => {
+                              setSelectedDesign(d)
+                              setIsDesignDropdownOpen(false)
+                            }}
+                            className={`w-full flex items-center px-4 py-3 rounded-lg hover:bg-emerald/5 transition-colors focus:outline-none ${isSelected ? 'bg-emerald/5' : ''}`}
+                          >
+                            <span className={`text-sm ${isSelected ? 'font-bold text-emerald' : 'font-medium text-ink/80'}`}>
+                              {d}
+                            </span>
+                            {isSelected && <Check className="w-4 h-4 ml-auto text-emerald stroke-[3]" />}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* Actions */}
-      <div className="space-y-4 pt-4 border-t border-cream-line/50">
+      <div className="space-y-3 pt-3 border-t border-cream-line/50">
         {/* Info text if in cart */}
         {currentQty > 0 && selectedColors.length <= 1 && (
           <div className="flex">
@@ -336,11 +421,11 @@ export default function ProductDetailActions({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
           <button
             onClick={handleAdd}
             disabled={colorVariants.length > 0 && selectedColors.length === 0}
-            className="w-full py-3.5 px-4 bg-emerald text-cream font-body font-semibold rounded-full shadow-card hover:bg-emerald-deep transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 px-4 bg-emerald text-cream font-body font-semibold rounded-full shadow-card hover:bg-emerald-deep transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ShoppingBag className="w-5 h-5" /> {currentQty > 0 && selectedColors.length <= 1 ? 'Update Cart' : 'Add to Cart'}
           </button>
@@ -348,7 +433,7 @@ export default function ProductDetailActions({
           <button
             onClick={handleBuyNow}
             disabled={colorVariants.length > 0 && selectedColors.length === 0}
-            className="w-full py-3.5 px-4 border-2 border-emerald text-emerald font-body font-semibold rounded-full hover:bg-emerald hover:text-cream transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 px-4 border-2 border-emerald text-emerald font-body font-semibold rounded-full hover:bg-emerald hover:text-cream transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <CreditCard className="w-5 h-5" /> Buy Now
           </button>

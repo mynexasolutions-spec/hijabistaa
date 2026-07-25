@@ -13,6 +13,7 @@ export type CartItem = {
   color_name?: string
   variant_id?: string
   variant_name?: string
+  design?: string
 }
 
 type CartContextType = {
@@ -52,7 +53,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [cart])
 
   const addToCart = (item: Omit<CartItem, 'quantity' | 'cartItemId'>) => {
-    const cartItemId = `${item.id}-${item.color_name || 'default'}-${item.variant_id || 'default'}`
+    const cartItemId = `${item.id}-${item.color_name || 'default'}-${item.variant_name || item.variant_id || 'default'}-${item.design || 'default'}`
     setCart((prev) => {
       const existing = prev.find((i) => i.cartItemId === cartItemId)
       if (existing) {

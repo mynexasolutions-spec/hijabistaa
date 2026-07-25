@@ -46,14 +46,10 @@ export default async function CustomerProfilePage() {
       }
     }
 
-    const { data: userOrders } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-    
-    if (userOrders) {
-      orders = userOrders
+    const { getUserOrdersAction } = await import('@/actions/orders')
+    const ordersRes = await getUserOrdersAction()
+    if (ordersRes.success) {
+      orders = ordersRes.orders
     }
   }
 

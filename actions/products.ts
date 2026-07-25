@@ -732,3 +732,134 @@ export async function saveProductColors(
   return { success: true }
 }
 
+export async function toggleImageColorMapping(
+  productId: string,
+  colorId: string,
+  imageUrl: string,
+  isMapped: boolean
+): Promise<ActionResult> {
+  const supabase = await createClient()
+
+  // 1. Fetch current color data
+  const { data: colorData, error: fetchError } = await supabase
+    .from('product_colors')
+    .select('images')
+    .eq('id', colorId)
+    .single()
+
+  if (fetchError && fetchError.code !== 'PGRST116') {
+    return { error: fetchError.message }
+  }
+
+  let currentImages = colorData?.images || []
+  if (isMapped) {
+    if (!currentImages.includes(imageUrl)) {
+      currentImages.push(imageUrl)
+    }
+  } else {
+    currentImages = currentImages.filter((img: string) => img !== imageUrl)
+  }
+
+  // 2. Update Supabase
+  const { error: updateError } = await supabase
+    .from('product_colors')
+    .update({ images: currentImages })
+    .eq('id', colorId)
+
+  if (updateError) {
+    return { error: updateError.message }
+  }
+
+  // 3. Update local db.json fallback
+  try {
+    const fs = await import('fs')
+    const path = await import('path')
+    const dbPath = path.join(process.cwd(), 'lib', 'db.json')
+    if (fs.existsSync(dbPath)) {
+      const fileData = fs.readFileSync(dbPath, 'utf8')
+      const json = JSON.parse(fileData)
+      if (Array.isArray(json.product_colors)) {
+        const colorIdx = json.product_colors.findIndex((c: any) => c.id === colorId)
+        if (colorIdx >= 0) {
+          json.product_colors[colorIdx].images = currentImages
+          fs.writeFileSync(dbPath, JSON.stringify(json, null, 2), 'utf8')
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Error updating db.json in toggleImageColorMapping', e)
+  }
+
+  revalidatePath(`/admin/products/${productId}/edit`)
+  revalidatePath(`/shop/${productId}`)
+  return { success: true }
+}
+
+export async function saveProductDesigns(
+  productId: string,
+  designs: string[]
+): Promise<ActionResult> {
+  const supabase = await createClient()
+
+  // 1. We will use the product_information table with a specific label 'Design' to store these
+  // This avoids schema changes while keeping it in Supabase natively.
+  try {
+    // Delete existing designs
+    await supabase
+      .from('product_information')
+      .delete()
+      .eq('product_id', productId)
+      .eq('label', 'Design')
+
+    if (designs.length > 0) {
+      const rows = designs.map((d, index) => ({
+        product_id: productId,
+        label: 'Design',
+        value: d,
+        display_order: 100 + index // Keep them grouped at the end
+      }))
+      const { error } = await supabase.from('product_information').insert(rows)
+      if (error) {
+        return { error: error.message }
+      }
+    }
+  } catch (e: any) {
+    return { error: e.message }
+  }
+
+  // 2. Also update db.json fallback
+  try {
+    const fs = await import('fs')
+    const path = await import('path')
+    const dbPath = path.join(process.cwd(), 'lib', 'db.json')
+    if (fs.existsSync(dbPath)) {
+      const fileData = fs.readFileSync(dbPath, 'utf8')
+      const json = JSON.parse(fileData)
+
+      if (!json.product_information) {
+        json.product_information = []
+      }
+
+      const otherInfo = json.product_information.filter(
+        (info: any) => !(info.product_id === productId && info.label === 'Design')
+      )
+      
+      const newInfo = designs.map((d, index) => ({
+        id: `design-${productId}-${index}-${Date.now()}`,
+        product_id: productId,
+        label: 'Design',
+        value: d,
+        display_order: 100 + index
+      }))
+
+      json.product_information = [...otherInfo, ...newInfo]
+      fs.writeFileSync(dbPath, JSON.stringify(json, null, 2), 'utf8')
+    }
+  } catch (e) {
+    console.error('Error updating db.json in saveProductDesigns', e)
+  }
+
+  revalidatePath(`/admin/products/${productId}/edit`)
+  revalidatePath(`/shop/${productId}`)
+  return { success: true }
+}
