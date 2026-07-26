@@ -758,6 +758,16 @@
       "size": "Free Size",
       "badge": "New",
       "is_active": true
+    },
+    {
+      "id": "59053d8b-51aa-4ade-94d7-c9336eed1999",
+      "name": "IMPORTED PREMIUM STRIP TURKISH JERSEY HIJAB",
+      "slug": "imported-premium-strip-turkish-jersey-hijab",
+      "price": 1,
+      "oldPrice": 349,
+      "size": "2.00M * 80cm",
+      "badge": "Bestseller",
+      "is_active": true
     }
   ],
   "orders": [
