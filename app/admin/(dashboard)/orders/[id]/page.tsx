@@ -18,7 +18,8 @@ export default async function AdminOrderDetailsPage({
 }) {
   const resolvedParams = await params
   const orderId = resolvedParams.id
-  const supabase = await createClient()
+  const { createAdminClient } = await import('@/lib/supabase/admin')
+  const supabase = createAdminClient()
 
   // Fetch Order Details
   const { data: order, error: orderError } = await supabase

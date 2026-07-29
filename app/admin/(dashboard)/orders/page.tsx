@@ -8,7 +8,8 @@ export const metadata = {
 }
 
 export default async function AdminOrdersPage() {
-  const supabase = await createClient()
+  const { createAdminClient } = await import('@/lib/supabase/admin')
+  const supabase = createAdminClient()
 
   // Fetch all orders with user profile info
   const { data: rawOrders } = await supabase

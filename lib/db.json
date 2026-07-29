@@ -768,6 +768,26 @@
       "size": "2.00M * 80cm",
       "badge": "Bestseller",
       "is_active": true
+    },
+    {
+      "id": "f1827165-95e8-4863-8677-4f8c4a73dee6",
+      "name": "IMPORTED PREMIUM ZERA LUXE PRINTED MODAL COTTON",
+      "slug": "imported-premium-zera-luxe-printed-modal-cotton",
+      "price": 450,
+      "oldPrice": 599,
+      "size": "2 m x 90 cm",
+      "badge": "Premium",
+      "is_active": true
+    },
+    {
+      "id": "9cd40cce-2cdc-4f30-b63b-51eccd4a6115",
+      "name": "Wooden LED Touch Wrist Watch",
+      "slug": "wooden-led-touch-wrist-watch",
+      "price": 122,
+      "oldPrice": 1,
+      "size": null,
+      "badge": null,
+      "is_active": true
     }
   ],
   "orders": [
@@ -945,26 +965,20 @@
         {
           "id": "default-1",
           "icon": "sparkles",
-          "text": "Free Shipping on Orders Above ₹999",
+          "text": "Delivery pan India and across ",
           "isActive": true
         },
         {
           "id": "default-2",
           "icon": "sparkles",
           "link": "",
-          "text": "New Abaya Collection 2025 – Shop Now",
+          "text": "New premium hijab Collection 2025 – Shop Now",
           "isActive": true
         },
         {
           "id": "default-3",
           "icon": "sparkles",
           "text": "Use Code: HIJAB15 & Get 15% OFF",
-          "isActive": true
-        },
-        {
-          "id": "default-4",
-          "icon": "none",
-          "text": "COD Available Across India",
           "isActive": true
         },
         {
@@ -981,6 +995,12 @@
       "speed": 50,
       "pauseOnHover": true,
       "separator": "line"
+    },
+    "hero_text": {
+      "heading_line1": "Modesty.",
+      "heading_line2": "Elegance.",
+      "heading_line3": "You.",
+      "description": "Premium Hijabs, Scarves & Modest Essentials crafted with luxurious fabric and effortless style."
     }
   },
   "subscribers": [
@@ -1196,5 +1216,11 @@
       "value": "Embroidered",
       "display_order": 104
     }
-  ]
+  ],
+  "hero_text": {
+    "heading_line1": "Modesty.",
+    "heading_line2": "Elegance.",
+    "heading_line3": "You.",
+    "description": "Premium Hijabs, Scarves & Modest Essentials crafted with luxurious fabric and effortless style."
+  }
 }

@@ -227,9 +227,13 @@ export async function createClient() {
     } as any
   }
 
+  const isAdmin = customSession?.role === 'admin' || cookieStore.get('mock-admin-logged-in')?.value === 'true'
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const finalKey = (isAdmin && serviceRoleKey) ? serviceRoleKey : key
+
   const client = createServerClient(
     url,
-    key,
+    finalKey,
     {
       cookies: {
         getAll() {

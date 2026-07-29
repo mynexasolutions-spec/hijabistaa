@@ -15,7 +15,8 @@ export const metadata: Metadata = {
 
 async function getStats() {
   try {
-    const supabase = await createClient()
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const supabase = createAdminClient()
 
     const [ordersRes, customersRes, productsRes, recentOrdersRes] =
       await Promise.all([
