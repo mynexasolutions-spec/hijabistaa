@@ -7,7 +7,7 @@ import { validateCoupon } from '@/actions/admin/coupons'
 import { processCheckout, verifyRazorpayPayment, cancelPendingOrder } from '@/actions/checkout'
 import { sendEmailOtp, verifyEmailOtp } from '@/actions/auth'
 import { SITE } from '@/lib/data'
-import { Truck, Tag, CreditCard, ShoppingBag, ShieldCheck, CheckCircle2, Lock, Eye, EyeOff, Plus, Minus, X, Loader2 } from 'lucide-react'
+import { Truck, Tag, CreditCard, ShoppingBag, ShieldCheck, CheckCircle2, Lock, Eye, EyeOff, Plus, Minus, X, Loader2, Package } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import Script from 'next/script'
@@ -81,6 +81,21 @@ export default function CheckoutForm({ shipping, isLoggedIn }: { shipping: Shipp
   const [activeCoupon, setActiveCoupon] = useState<any>(null)
   const [couponError, setCouponError] = useState('')
   const [couponSuccess, setCouponSuccess] = useState('')
+  const [availableCoupons, setAvailableCoupons] = useState<any[]>([])
+
+  // Fetch only real, active coupons from the DB — never show a hint for a coupon that doesn't exist
+  useEffect(() => {
+    const fetchActiveCoupons = async () => {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('coupons')
+        .select('code, type, value, min_purchase')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+      setAvailableCoupons(data || [])
+    }
+    fetchActiveCoupons()
+  }, [])
 
   // Payment Method
   const [paymentMethod, setPaymentMethod] = useState<'Online Payment (Razorpay)'>('Online Payment (Razorpay)')
@@ -379,6 +394,13 @@ export default function CheckoutForm({ shipping, isLoggedIn }: { shipping: Shipp
               <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.665.989 3.3 1.49 4.975 1.491 5.474 0 9.932-4.457 9.935-9.931a9.885 9.885 0 0 0-2.883-7.054A9.882 9.882 0 0 0 11.758 1.15c-5.483 0-9.94 4.458-9.944 9.934-.002 1.936.507 3.82 1.476 5.489L2.247 20.89l4.4-.736z" />
             </svg>
             Confirm via WhatsApp
+          </a>
+          <a
+            href="/profile?tab=orders"
+            className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-4 bg-white text-ink font-body font-semibold rounded-full border border-cream-line shadow-sm hover:bg-cream transition-all"
+          >
+            <Package className="w-4.5 h-4.5 text-gold" />
+            See My Orders
           </a>
           <a
             href="/"
@@ -726,10 +748,17 @@ export default function CheckoutForm({ shipping, isLoggedIn }: { shipping: Shipp
           {couponError && <p className="text-xs text-red-500">{couponError}</p>}
           {couponSuccess && <p className="text-xs text-emerald font-semibold">{couponSuccess}</p>}
 
-          <div className="text-[11px] text-ink/40 border-t border-cream-line/50 pt-2 space-y-1">
-            <p><strong>EID50</strong> — 50% discount on orders above ₹999</p>
-            <p><strong>WELCOME100</strong> — Flat ₹100 discount on orders above ₹499</p>
-          </div>
+          {availableCoupons.length > 0 && (
+            <div className="text-[11px] text-ink/40 border-t border-cream-line/50 pt-2 space-y-1">
+              {availableCoupons.map((c) => (
+                <p key={c.code}>
+                  <strong>{c.code}</strong> —{' '}
+                  {c.type === 'percentage' ? `${c.value}% discount` : `Flat ₹${c.value} discount`}
+                  {c.min_purchase > 0 ? ` on orders above ₹${c.min_purchase}` : ''}
+                </p>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -756,6 +785,9 @@ export default function CheckoutForm({ shipping, isLoggedIn }: { shipping: Shipp
               <h3 className="font-heading text-2xl font-bold text-ink">Confirm Verification Code</h3>
               <p className="text-sm text-ink/75 mt-2 font-body px-1">
                 We sent a 6-digit OTP code to <strong className="text-ink font-semibold">{profile.email}</strong>. Please enter it below to verify your account and complete your order.
+              </p>
+              <p className="text-xs text-ink/80 font-semibold mt-2 font-body px-1">
+                Didn't get the code? Please also check your Spam/Junk folder.
               </p>
             </div>
 
@@ -789,7 +821,9 @@ export default function CheckoutForm({ shipping, isLoggedIn }: { shipping: Shipp
                 ) : (
                   <button
                     type="button"
+                    disabled={otpPending}
                     onClick={async () => {
+                      if (otpPending) return
                       setOtpPending(true)
                       const res = await sendEmailOtp(profile.email, 'REGISTER', profile.fullName)
                       setOtpPending(false)
@@ -800,9 +834,9 @@ export default function CheckoutForm({ shipping, isLoggedIn }: { shipping: Shipp
                         showToast('Verification code resent successfully.', 'success')
                       }
                     }}
-                    className="text-gold hover:text-gold-dark hover:underline font-semibold transition-colors duration-200"
+                    className="text-gold hover:text-gold-dark hover:underline font-semibold transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline"
                   >
-                    Resend Verification Code
+                    {otpPending ? 'Sending...' : 'Resend Verification Code'}
                   </button>
                 )}
               </div>

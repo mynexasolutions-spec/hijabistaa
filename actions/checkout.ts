@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import Razorpay from 'razorpay'
 import crypto from 'crypto'
 import { calculateShippingCharge } from '@/lib/shipping'
+import { sendOrderConfirmationEmail } from '@/lib/email'
 
 
 // Initialize Razorpay
@@ -234,9 +235,11 @@ export async function verifyRazorpayPayment(
   // 3. Update Order Status
   const { error: updateError } = await supabase
     .from('orders')
-    .update({ 
+    .update({
       payment_status: 'paid',
-      paid_at: new Date().toISOString()
+      paid_at: new Date().toISOString(),
+      razorpay_order_id,
+      razorpay_payment_id
     })
     .eq('id', internal_order_id)
     .eq('user_id', user.id)
@@ -269,6 +272,35 @@ export async function verifyRazorpayPayment(
     .from('cart_items')
     .delete()
     .eq('user_id', user.id)
+
+  // 6. Send order confirmation email — best-effort, never blocks checkout
+  // success if it fails (missing API key, Brevo error, etc.)
+  try {
+    const { data: fullOrder } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        addresses:address_id (*),
+        order_items (*)
+      `)
+      .eq('id', internal_order_id)
+      .maybeSingle()
+
+    if (fullOrder && user.email) {
+      await sendOrderConfirmationEmail({
+        toEmail: user.email,
+        customerName: fullOrder.addresses?.full_name || 'Customer',
+        orderNumber: fullOrder.order_number,
+        items: fullOrder.order_items || [],
+        subtotal: fullOrder.subtotal,
+        shippingCost: fullOrder.shipping_cost,
+        totalAmount: fullOrder.total_amount,
+        address: fullOrder.addresses || null,
+      })
+    }
+  } catch (e) {
+    console.error('Failed to send order confirmation email:', e)
+  }
 
   revalidatePath('/cart')
   revalidatePath('/checkout')

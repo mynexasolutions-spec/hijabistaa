@@ -14,8 +14,14 @@ export async function trackOrderAction(orderNumber: string, emailOrPhone: string
   // 1. Get user if logged in
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Fetch matching order
-  const { data: order, error } = await supabase
+  // Fetch matching order using the service-role client: this action does its own
+  // authorization below (owner match or email/phone match), so it isn't relying on
+  // RLS — and OTP-based logins have no real Supabase Auth JWT (auth.uid() is NULL),
+  // so the anon-key client's "auth.uid() = user_id" policy would block this read.
+  const { createAdminClient } = await import('@/lib/supabase/admin')
+  const adminClient = createAdminClient()
+
+  const { data: order, error } = await adminClient
     .from('orders')
     .select(`
       *,
@@ -105,7 +111,13 @@ export async function getUserOrdersAction() {
     return { success: false, orders: [], isGuest: true }
   }
 
-  const { data: userOrders, error } = await supabase
+  // OTP-based customer logins only carry our own "hijabistaa-user-session" cookie,
+  // not a real Supabase Auth JWT, so auth.uid() is NULL here and the anon-key
+  // client's "auth.uid() = user_id" RLS policy would silently return zero rows.
+  const { createAdminClient } = await import('@/lib/supabase/admin')
+  const adminClient = createAdminClient()
+
+  const { data: userOrders, error } = await adminClient
     .from('orders')
     .select(`
       *,

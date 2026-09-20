@@ -368,3 +368,22 @@ select:focus-visible,
   animation: modalScaleUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Zeroing the @page margin stops Chrome/Edge reserving space for their
+   default print header/footer (page title, URL, date, page number), since
+   there's no margin left to draw them in. Visual whitespace for the printed
+   receipt is instead added via padding on the receipt content itself. */
+@media print {
+  @page {
+    margin: 0;
+  }
+
+  /* Without this, some browsers fade/desaturate images and background
+     colors in print output instead of rendering them exactly as shown
+     on screen (this is what made the receipt's logo print almost blank). */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+}
+

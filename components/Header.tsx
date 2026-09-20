@@ -10,7 +10,7 @@ import CartDrawer from "./CartDrawer";
 import { DesktopMegaMenu, MobileMegaMenu } from "./MegaMenu";
 import AnnouncementBanner from "./AnnouncementBanner";
 import dbData from "@/lib/db.json";
-import { Search, Heart } from "lucide-react";
+import { Search, Heart, Package } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getShippingSettings } from "@/actions/admin/shipping";
 import { getMegaMenuDiscoverItems } from "@/actions/admin/megaMenuDiscover";
@@ -302,7 +302,14 @@ export default function Header() {
                   </a>
                 )}
                 <a
-                  href="/profile"
+                  href="/profile?tab=orders"
+                  title="My Orders"
+                  className="text-gold hover:text-emerald transition-colors p-1 shrink-0"
+                >
+                  <Package className="w-[22px] h-[22px]" strokeWidth={2} />
+                </a>
+                <a
+                  href="/profile?tab=profile"
                   title="Manage Profile"
                   className="text-gold hover:text-emerald transition-colors p-1 shrink-0"
                 >
@@ -475,7 +482,15 @@ export default function Header() {
                   </a>
                 )}
                 <a
-                  href="/profile"
+                  href="/profile?tab=orders"
+                  onClick={() => setOpen(false)}
+                  className="font-display text-2xl font-semibold text-gold py-3.5 border-b border-cream-line flex items-center justify-between"
+                >
+                  <span>My Orders</span>
+                  <Package className="w-6 h-6 text-gold" strokeWidth={2} />
+                </a>
+                <a
+                  href="/profile?tab=profile"
                   onClick={() => setOpen(false)}
                   className="font-display text-2xl font-semibold text-gold py-3.5 border-b border-cream-line flex items-center justify-between"
                 >

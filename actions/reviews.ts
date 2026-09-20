@@ -77,9 +77,17 @@ export async function submitReview(
         })
       }
 
+      // OTP-based customer logins carry our own "hijabistaa-user-session"
+      // cookie, not a real Supabase Auth JWT, so auth.uid() is NULL here and
+      // the anon-key client would be blocked by the "customers" RLS SELECT/
+      // INSERT policies and the "reviews" RLS INSERT policy (both require
+      // auth.uid() = id/user_id). Use the service-role client for those.
+      const { createAdminClient } = await import('@/lib/supabase/admin')
+      const adminClient = createAdminClient()
+
       let validUserId: string | null = null
       if (user?.id) {
-        const { data: profile } = await supabase
+        const { data: profile } = await adminClient
           .from('customers')
           .select('id')
           .eq('id', user.id)
@@ -88,7 +96,7 @@ export async function submitReview(
         if (profile) {
           validUserId = user.id
         } else {
-          const { error: profileError } = await supabase.from('customers').insert({
+          const { error: profileError } = await adminClient.from('customers').insert({
             id: user.id,
             email: user.email || 'customer@hijabistaa.com',
             full_name: customerName
@@ -97,7 +105,7 @@ export async function submitReview(
         }
       }
 
-      await supabase
+      await adminClient
         .from('reviews')
         .insert({
           id: reviewId,

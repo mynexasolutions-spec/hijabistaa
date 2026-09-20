@@ -2,7 +2,10 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { createShiprocketOrder } from '@/lib/shiprocket'
+import {
+  createShiprocketOrder,
+  syncOneOrderFromShiprocket,
+} from '@/lib/shiprocket'
 
 async function checkAdminAuth(supabase: any) {
   const { data: { user } } = await supabase.auth.getUser()
@@ -247,4 +250,86 @@ export async function createShiprocketShipment(orderId: string, weightKgOverride
     console.error('[Shiprocket] Failed to create shipment:', err)
     return { success: false, error: err?.message || 'Failed to create Shiprocket shipment.' }
   }
+}
+
+export async function syncShiprocketStatus(orderId: string) {
+  const supabase = await createClient()
+
+  const isAdmin = await checkAdminAuth(supabase)
+  if (!isAdmin) return { success: false as const, error: 'Unauthorized' }
+
+  const { createAdminClient } = await import('@/lib/supabase/admin')
+  const adminClient = createAdminClient()
+
+  const { data: order, error: orderError } = await adminClient
+    .from('orders')
+    .select('id, shiprocket_order_id, awb_code')
+    .eq('id', orderId)
+    .maybeSingle()
+
+  if (orderError || !order) {
+    return { success: false as const, error: orderError?.message || 'Order not found.' }
+  }
+
+  if (!order.shiprocket_order_id) {
+    return { success: false as const, error: 'This order has not been pushed to Shiprocket yet.' }
+  }
+
+  try {
+    const result = await syncOneOrderFromShiprocket(adminClient, order)
+
+    revalidatePath('/admin/orders')
+    revalidatePath(`/admin/orders/${orderId}`)
+
+    return { success: true as const, ...result }
+  } catch (err: any) {
+    console.error('[Shiprocket] Failed to sync status:', err)
+    return { success: false as const, error: err?.message || 'Failed to fetch status from Shiprocket.' }
+  }
+}
+
+// Bulk catch-up — syncs every order ever pushed to Shiprocket, for the
+// stretch of time the webhook's order-id matching was broken (or before the
+// webhook was registered on the Shiprocket account at all), so none of them
+// are left showing stale status/no AWB forever.
+export async function syncAllShiprocketOrders() {
+  const supabase = await createClient()
+
+  const isAdmin = await checkAdminAuth(supabase)
+  if (!isAdmin) return { success: false, error: 'Unauthorized' }
+
+  const { createAdminClient } = await import('@/lib/supabase/admin')
+  const adminClient = createAdminClient()
+
+  const { data: orders, error: ordersError } = await adminClient
+    .from('orders')
+    .select('id, order_number, shiprocket_order_id, awb_code')
+    .not('shiprocket_order_id', 'is', null)
+
+  if (ordersError) {
+    return { success: false, error: ordersError.message }
+  }
+
+  if (!orders || orders.length === 0) {
+    return { success: true, synced: 0, failed: 0, failures: [] }
+  }
+
+  let synced = 0
+  const failures: Array<{ orderNumber: string; error: string }> = []
+
+  for (const order of orders) {
+    try {
+      await syncOneOrderFromShiprocket(adminClient, order)
+      synced += 1
+    } catch (err: any) {
+      failures.push({ orderNumber: order.order_number, error: err?.message || 'Unknown error' })
+    }
+    // Shiprocket rate-limits its API — a short delay between calls keeps a
+    // large batch from tripping it and failing the rest of the run.
+    await new Promise((resolve) => setTimeout(resolve, 350))
+  }
+
+  revalidatePath('/admin/orders')
+
+  return { success: true, synced, failed: failures.length, failures }
 }

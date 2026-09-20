@@ -3,6 +3,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+// OTP-based customer logins carry our own "hijabistaa-user-session" cookie,
+// not a real Supabase Auth JWT, so auth.uid() is NULL for the anon-key
+// client and the "cart_items" RLS policy ("auth.uid() = user_id") silently
+// returns/affects zero rows. Every cart_items read/write below therefore
+// goes through the service-role client instead, with ownership enforced by
+// the explicit .eq('user_id', user.id) filters already in place.
+
 export async function addToCart(variantId: string, quantity: number = 1) {
   const supabase = await createClient()
 
@@ -11,8 +18,11 @@ export async function addToCart(variantId: string, quantity: number = 1) {
     return { success: false, error: 'Please log in to add items to your cart.', requiresLogin: true }
   }
 
+  const { createAdminClient } = await import('@/lib/supabase/admin')
+  const adminClient = createAdminClient()
+
   // Check if this variant already exists in the user's cart
-  const { data: existing } = await supabase
+  const { data: existing } = await adminClient
     .from('cart_items')
     .select('id, quantity')
     .eq('user_id', user.id)
@@ -22,7 +32,7 @@ export async function addToCart(variantId: string, quantity: number = 1) {
   if (existing) {
     // Update quantity
     const newQty = existing.quantity + quantity
-    const { error } = await supabase
+    const { error } = await adminClient
       .from('cart_items')
       .update({ quantity: newQty })
       .eq('id', existing.id)
@@ -30,7 +40,7 @@ export async function addToCart(variantId: string, quantity: number = 1) {
     if (error) return { success: false, error: error.message }
   } else {
     // Insert new
-    const { error } = await supabase
+    const { error } = await adminClient
       .from('cart_items')
       .insert([{ user_id: user.id, variant_id: variantId, quantity }])
 
@@ -47,7 +57,10 @@ export async function removeFromCart(cartItemId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Unauthorized' }
 
-  const { error } = await supabase
+  const { createAdminClient } = await import('@/lib/supabase/admin')
+  const adminClient = createAdminClient()
+
+  const { error } = await adminClient
     .from('cart_items')
     .delete()
     .eq('id', cartItemId)
@@ -69,7 +82,10 @@ export async function updateCartQuantity(cartItemId: string, quantity: number) {
     return removeFromCart(cartItemId)
   }
 
-  const { error } = await supabase
+  const { createAdminClient } = await import('@/lib/supabase/admin')
+  const adminClient = createAdminClient()
+
+  const { error } = await adminClient
     .from('cart_items')
     .update({ quantity })
     .eq('id', cartItemId)
@@ -87,7 +103,10 @@ export async function getCart() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Not logged in', items: [] }
 
-  const { data, error } = await supabase
+  const { createAdminClient } = await import('@/lib/supabase/admin')
+  const adminClient = createAdminClient()
+
+  const { data, error } = await adminClient
     .from('cart_items')
     .select(`
       id,
@@ -123,7 +142,10 @@ export async function getCartCount() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return 0
 
-  const { data } = await supabase
+  const { createAdminClient } = await import('@/lib/supabase/admin')
+  const adminClient = createAdminClient()
+
+  const { data } = await adminClient
     .from('cart_items')
     .select('quantity')
     .eq('user_id', user.id)

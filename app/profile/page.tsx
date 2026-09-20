@@ -9,7 +9,12 @@ export const metadata = {
   description: 'Manage your shipping address, contact details, and order tracking.',
 }
 
-export default async function CustomerProfilePage() {
+export default async function CustomerProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>
+}) {
+  const { tab } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -20,13 +25,20 @@ export default async function CustomerProfilePage() {
   let adminProfile = null
   let orders = []
   if (user) {
-    const { data: profile } = await supabase
+    // Reads use the service-role client: OTP-based customer logins are validated
+    // via our own "hijabistaa-user-session" cookie, not a real Supabase Auth JWT,
+    // so auth.uid() is NULL for these requests and the anon-key client's RLS
+    // policies ("auth.uid() = id") would silently return zero rows here.
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const adminClient = createAdminClient()
+
+    const { data: profile } = await adminClient
       .from('customers')
       .select('*')
       .eq('id', user.id)
       .single()
 
-    const { data: address } = await supabase
+    const { data: address } = await adminClient
       .from('addresses')
       .select('*')
       .eq('user_id', user.id)
@@ -70,7 +82,7 @@ export default async function CustomerProfilePage() {
             </p>
           </div>
 
-          <ProfileManager adminProfile={adminProfile} orders={orders} />
+          <ProfileManager adminProfile={adminProfile} orders={orders} initialTab={tab === 'profile' ? 'profile' : 'orders'} />
         </div>
       </main>
       <Footer />

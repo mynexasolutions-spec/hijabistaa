@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { User, Phone, MapPin, CheckCircle, Package, Mail } from 'lucide-react'
+import Link from 'next/link'
+import { User, Phone, MapPin, CheckCircle, Package, Mail, ShoppingBag, ArrowRight, Eye } from 'lucide-react'
 import { updateCustomerFullProfile } from '@/actions/profile'
 import { useToast } from '@/context/ToastContext'
 
@@ -15,7 +16,7 @@ type CustomerProfile = {
   zipCode: string
 }
 
-export default function ProfileManager({ adminProfile, orders = [] }: { adminProfile: any, orders?: any[] }) {
+export default function ProfileManager({ adminProfile, orders = [], initialTab = 'orders' }: { adminProfile: any, orders?: any[], initialTab?: 'profile' | 'orders' }) {
   const [profile, setProfile] = useState<CustomerProfile>({
     fullName: '',
     phone: '',
@@ -26,6 +27,7 @@ export default function ProfileManager({ adminProfile, orders = [] }: { adminPro
     zipCode: '',
   })
   const [saved, setSaved] = useState(false)
+  const [mainTab, setMainTab] = useState<'profile' | 'orders'>(initialTab)
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'>('all')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({})
@@ -86,7 +88,34 @@ export default function ProfileManager({ adminProfile, orders = [] }: { adminPro
 
   return (
     <div className="space-y-8">
+      {/* Main Tabs: Profile / Orders */}
+      <div className="flex gap-2 bg-white rounded-full p-1.5 border border-cream-line/75 shadow-sm w-full max-w-md mx-auto">
+        <button
+          type="button"
+          onClick={() => setMainTab('orders')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-full text-sm font-bold transition-all ${
+            mainTab === 'orders'
+              ? 'bg-emerald text-cream shadow-card'
+              : 'text-ink/60 hover:text-ink'
+          }`}
+        >
+          <Package className="w-4 h-4" /> Orders {orders.length > 0 && `(${orders.length})`}
+        </button>
+        <button
+          type="button"
+          onClick={() => setMainTab('profile')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-full text-sm font-bold transition-all ${
+            mainTab === 'profile'
+              ? 'bg-emerald text-cream shadow-card'
+              : 'text-ink/60 hover:text-ink'
+          }`}
+        >
+          <User className="w-4 h-4" /> Profile
+        </button>
+      </div>
+
       {/* Form Card */}
+      {mainTab === 'profile' && (
       <div className="bg-white rounded-2xl p-6 md:p-8 shadow-card border border-cream-line/75">
         <form onSubmit={handleSave} className="space-y-6">
           {saved && (
@@ -236,9 +265,10 @@ export default function ProfileManager({ adminProfile, orders = [] }: { adminPro
           </button>
         </form>
       </div>
+      )}
 
-      {/* Orders Card */}
       {/* Orders Section */}
+      {mainTab === 'orders' && (
       <div className="space-y-6">
         <h2 className="text-3xl font-bold text-ink">Order History</h2>
 
@@ -311,6 +341,14 @@ export default function ProfileManager({ adminProfile, orders = [] }: { adminPro
                     : 'No orders placed yet.'}
                 </p>
                 <p className="text-sm text-ink/40 mt-1">Add items to your cart and checkout to see them here.</p>
+                <Link
+                  href="/shop"
+                  className="inline-flex items-center gap-2 mt-6 px-7 py-3.5 bg-gradient-to-r from-emerald to-emerald-deep text-cream font-bold rounded-full shadow-card hover:shadow-xl hover:scale-105 active:scale-100 transition-all duration-300"
+                >
+                  <ShoppingBag className="w-4.5 h-4.5" />
+                  Start Shopping
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
               </div>
             )
           }
@@ -371,6 +409,16 @@ export default function ProfileManager({ adminProfile, orders = [] }: { adminPro
                         <span>Date: {formattedDate}</span>
                       </div>
                     </div>
+
+                    {/* View Details (always visible, links to full tracking page) */}
+                    <Link
+                      href={`/orders/${order.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 md:px-5 md:py-2.5 bg-emerald hover:bg-emerald-deep text-cream text-[11px] md:text-xs font-bold rounded-full shadow-sm transition-all whitespace-nowrap"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      View Details
+                    </Link>
                   </div>
 
                   {isExpanded && (
@@ -452,6 +500,7 @@ export default function ProfileManager({ adminProfile, orders = [] }: { adminPro
         )
       })()}
       </div>
+      )}
     </div>
   )
 }

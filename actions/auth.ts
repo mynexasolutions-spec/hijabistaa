@@ -174,6 +174,7 @@ export async function sendEmailOtp(
         sender: { name: senderName, email: senderEmail },
         to: [{ email }],
         subject: 'Your Verification Code - HIJABISTAA',
+        textContent: `Your HIJABISTAA verification code is: ${otp}\n\nThis code is valid for 10 minutes. If you did not request this, please ignore this email.`,
         htmlContent: `
           <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 32px; border: 1px solid #E6DAC4; border-radius: 24px; background-color: #FBF7F0; text-align: center; box-shadow: 0 4px 20px rgba(33,29,25,0.025);">
             <!-- Logo Header -->
@@ -218,6 +219,9 @@ export async function sendEmailOtp(
       console.error('Brevo API Error:', errText)
       return { error: 'Failed to send verification email.' }
     }
+
+    const resBody = await response.json().catch(() => null)
+    console.log(`OTP email sent to ${email} — Brevo messageId: ${resBody?.messageId || 'unknown'}`)
 
     return { success: true }
   } catch (e: any) {

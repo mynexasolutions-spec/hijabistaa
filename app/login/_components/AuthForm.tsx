@@ -205,6 +205,9 @@ export default function AuthForm({ redirectTo }: { redirectTo?: string }) {
                 />
                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-ink/40" />
               </div>
+              <p className="text-xs text-ink/80 font-semibold mt-1.5">
+                Didn't get the code? Please also check your Spam/Junk folder.
+              </p>
             </div>
 
             <button

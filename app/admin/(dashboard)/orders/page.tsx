@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { OrderListTable } from './_components/OrderListTable'
+import { SyncAllShiprocketButton } from './_components/SyncAllShiprocketButton'
 
 export const metadata = {
   title: 'Orders | Admin Dashboard',
@@ -35,6 +36,7 @@ export default async function AdminOrdersPage() {
           <h1 className="text-2xl font-bold text-stone-900">Orders</h1>
           <p className="text-sm text-stone-500 mt-1">Manage and track all store orders.</p>
         </div>
+        <SyncAllShiprocketButton />
       </div>
 
       <OrderListTable initialOrders={orders} />
