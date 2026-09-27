@@ -141,6 +141,8 @@ export async function createOrder(addressId: string, paymentMethod: string, cart
 
   if (itemsError) {
     console.error('Failed to insert order items:', itemsError)
+    // Never leave an order sitting in the DB with no items — roll it back.
+    await admin.from('orders').delete().eq('id', order.id)
     return { success: false, error: 'Failed to create order items' }
   }
 
@@ -157,7 +159,15 @@ export async function createOrder(addressId: string, paymentMethod: string, cart
         amount: Math.round(total_amount * 100),
         currency: 'INR',
         receipt: order.id,
-        payment_capture: 1
+        payment_capture: 1,
+        // Razorpay echoes notes back on every payment/order webhook payload.
+        // The webhook handler needs this to resolve our internal order id —
+        // `payment.receipt` doesn't exist on payment entities (only on
+        // orders), so without notes it had no reliable way to match a
+        // payment.captured event back to an order.
+        notes: {
+          internal_order_id: order.id,
+        },
       }
       
       const rzpOrder = await razorpayInstance.orders.create(options)
@@ -438,27 +448,61 @@ export async function processCheckout(
   return await createOrder(addressId, paymentMethod, items)
 }
 
-export async function cancelPendingOrder(orderId: string) {
+export async function cancelPendingOrder(orderId: string, razorpayOrderId?: string) {
   if (!orderId) return
   try {
     const { createAdminClient } = await import('@/lib/supabase/admin')
     const supabaseAdmin = createAdminClient()
 
-    // Razorpay's modal `ondismiss` can fire even after a successful payment
-    // (it races with the async `handler`/verifyRazorpayPayment call), so this
-    // must never touch an order that has already been paid. Only delete the
-    // order row, and only while it's still pending — order_items cascade-
-    // deletes automatically via its ON DELETE CASCADE FK to orders, so there
-    // is no separate items delete to guard.
+    const { data: order } = await supabaseAdmin
+      .from('orders')
+      .select('id, payment_status, razorpay_order_id')
+      .eq('id', orderId)
+      .maybeSingle()
+
+    // Already resolved (paid, or cancelled by an earlier call) — nothing to do.
+    if (!order || order.payment_status !== 'pending') return
+
+    // Razorpay's modal `ondismiss` only means "the modal closed" — for a UPI
+    // intent payment it fires the moment the browser switches to the UPI
+    // app, well before we know whether the payment actually went through.
+    // Don't guess from our own DB timing (that's what raced and lost items
+    // before); ask Razorpay directly, since its order status is the source
+    // of truth on whether money actually moved. `orders.razorpay_order_id`
+    // isn't written to the DB until payment is verified, so at this point
+    // it's normally still null — take it from the caller (the browser has
+    // it from the moment the Razorpay order was created) and fall back to
+    // the DB value in case it's already been backfilled.
+    const rzpOrderId = razorpayOrderId || order.razorpay_order_id
+    if (rzpOrderId && razorpayInstance) {
+      try {
+        const rzpOrder = await razorpayInstance.orders.fetch(rzpOrderId)
+        if (rzpOrder.status === 'paid') {
+          // Payment succeeded after all — leave it alone. The webhook (or
+          // verifyRazorpayPayment) will mark it paid, if it hasn't already.
+          return
+        }
+      } catch (e) {
+        // Couldn't reach Razorpay to confirm — safer to leave the order as
+        // pending than to risk cancelling a payment that actually succeeded.
+        console.warn('Failed to confirm Razorpay order status before cancelling:', e)
+        return
+      }
+    }
+
+    // Never delete the order or its items — mark it cancelled instead, so a
+    // mistaken or premature cancel can never destroy data. The admin order
+    // list already hides non-paid, non-COD orders, so this stays invisible
+    // clutter unless someone deliberately looks for it.
     await supabaseAdmin
       .from('orders')
-      .delete()
+      .update({ order_status: 'cancelled', cancelled_at: new Date().toISOString() })
       .eq('id', orderId)
       .eq('payment_status', 'pending')
 
     revalidatePath('/admin/orders')
   } catch (e) {
-    console.warn('Failed to delete pending order on cancel:', e)
+    console.warn('Failed to cancel pending order:', e)
   }
 }
 

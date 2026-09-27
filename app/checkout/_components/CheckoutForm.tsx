@@ -218,27 +218,35 @@ export default function CheckoutForm({ shipping, isLoggedIn }: { shipping: Shipp
       order_id: orderData.razorpayOrderId,
       modal: {
         ondismiss: function () {
-          cancelPendingOrder(orderData.orderId)
+          cancelPendingOrder(orderData.orderId, orderData.razorpayOrderId)
         }
       },
       handler: async function (response: any) {
-        const verifyRes = await verifyRazorpayPayment(
-          response.razorpay_payment_id,
-          response.razorpay_order_id,
-          response.razorpay_signature,
-          orderData.orderId
-        )
-        if (verifyRes.success) {
-          setPlacedOrder({
-            order_number: orderData.orderNumber,
-            id: orderData.orderId,
-            total: grandTotal,
-            items: [...cart],
-            shippingAddress: addressString
-          })
-          clearCart()
-        } else {
-          showToast('Payment verification failed. Please contact support.', 'error')
+        try {
+          const verifyRes = await verifyRazorpayPayment(
+            response.razorpay_payment_id,
+            response.razorpay_order_id,
+            response.razorpay_signature,
+            orderData.orderId
+          )
+          if (verifyRes.success) {
+            setPlacedOrder({
+              order_number: orderData.orderNumber,
+              id: orderData.orderId,
+              total: grandTotal,
+              items: [...cart],
+              shippingAddress: addressString
+            })
+            clearCart()
+          } else {
+            showToast('Payment verification failed. Please contact support.', 'error')
+          }
+        } catch (e) {
+          // Payment succeeded on Razorpay's side (this handler only fires on
+          // success) but our server call to confirm it failed — the customer
+          // has been charged, so tell them clearly instead of going silent.
+          console.error('Failed to verify Razorpay payment:', e)
+          showToast(`Payment received, but we couldn't confirm it automatically. Please contact support with order ${orderData.orderNumber}.`, 'error')
         }
       },
       prefill: {
@@ -249,14 +257,25 @@ export default function CheckoutForm({ shipping, isLoggedIn }: { shipping: Shipp
         color: "#1E3B2E" // Emerald
       }
     };
-    
+
     // @ts-ignore
-    const rzp1 = new window.Razorpay(options);
-    rzp1.on('payment.failed', function (response: any){
-        cancelPendingOrder(orderData.orderId)
-        showToast("Payment failed! Reason: " + response.error.description, "error");
-    });
-    rzp1.open();
+    if (typeof window === 'undefined' || !window.Razorpay) {
+      showToast('Payment gateway is still loading. Please wait a moment and try again.', 'error')
+      return
+    }
+
+    try {
+      // @ts-ignore
+      const rzp1 = new window.Razorpay(options);
+      rzp1.on('payment.failed', function (response: any){
+          cancelPendingOrder(orderData.orderId, orderData.razorpayOrderId)
+          showToast("Payment failed! Reason: " + response.error.description, "error");
+      });
+      rzp1.open();
+    } catch (e) {
+      console.error('Failed to open Razorpay checkout:', e)
+      showToast('Could not open the payment window. Please refresh and try again.', 'error')
+    }
   }
 
   // Execute checkout and place order
@@ -416,7 +435,7 @@ export default function CheckoutForm({ shipping, isLoggedIn }: { shipping: Shipp
   return (
     <>
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
       {/* Left Column: Shipping Address & Payment Form */}
       <div className="lg:col-span-7 space-y-6">
         <div className="bg-white rounded-3xl p-6 md:p-8 border border-cream-line shadow-card space-y-6">
