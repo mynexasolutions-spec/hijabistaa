@@ -444,19 +444,18 @@ export async function cancelPendingOrder(orderId: string) {
     const { createAdminClient } = await import('@/lib/supabase/admin')
     const supabaseAdmin = createAdminClient()
 
-    // 1. Delete associated order items first to satisfy foreign key constraints
-    await supabaseAdmin
-      .from('order_items')
-      .delete()
-      .eq('order_id', orderId)
-
-    // 2. Delete the order record
+    // Razorpay's modal `ondismiss` can fire even after a successful payment
+    // (it races with the async `handler`/verifyRazorpayPayment call), so this
+    // must never touch an order that has already been paid. Only delete the
+    // order row, and only while it's still pending — order_items cascade-
+    // deletes automatically via its ON DELETE CASCADE FK to orders, so there
+    // is no separate items delete to guard.
     await supabaseAdmin
       .from('orders')
       .delete()
       .eq('id', orderId)
       .eq('payment_status', 'pending')
-    
+
     revalidatePath('/admin/orders')
   } catch (e) {
     console.warn('Failed to delete pending order on cancel:', e)
