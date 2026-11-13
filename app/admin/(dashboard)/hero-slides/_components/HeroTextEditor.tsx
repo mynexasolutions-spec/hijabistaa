@@ -24,8 +24,8 @@ export function HeroTextEditor({ initialText }: { initialText: HeroTextConfig })
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-6">
-      <div className="flex items-center justify-between gap-4 mb-6 border-b border-stone-100 pb-4">
+    <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-4 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6 border-b border-stone-100 pb-4">
         <div className="flex items-center gap-2.5">
           <div className="p-2 bg-[#7E3F35]/10 rounded-xl text-[#7E3F35]">
             <Type className="w-5 h-5" />

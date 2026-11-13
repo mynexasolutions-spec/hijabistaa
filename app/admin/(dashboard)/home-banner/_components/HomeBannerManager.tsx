@@ -91,7 +91,7 @@ export function HomeBannerManager({
   return (
     <div className="space-y-6">
       {/* Enable / Disable */}
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-6 flex items-center justify-between">
+      <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-4 sm:p-6 flex items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-stone-900">Show Banner on Homepage</h2>
           <p className="text-sm text-stone-500 mt-1">
@@ -111,8 +111,8 @@ export function HomeBannerManager({
       </div>
 
       {/* Images */}
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-4 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-2">
             <ImageIcon className="w-5 h-5 text-stone-400" />
             <h2 className="text-lg font-bold text-stone-900">Banner Images</h2>
@@ -165,8 +165,8 @@ export function HomeBannerManager({
                   img.is_active ? 'border-stone-200 bg-white' : 'border-stone-100 bg-stone-50 opacity-60'
                 }`}
               >
-                <div className="flex items-center gap-4 p-4">
-                  <div className="w-32 aspect-[3/1] shrink-0 rounded-lg overflow-hidden relative bg-stone-200 border border-stone-200">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4">
+                  <div className="w-full sm:w-32 aspect-[3/1] shrink-0 rounded-lg overflow-hidden relative bg-stone-200 border border-stone-200">
                     <Image src={img.image_url} alt={`Banner ${index + 1}`} fill className="object-cover" />
                   </div>
 
@@ -185,7 +185,7 @@ export function HomeBannerManager({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center justify-end gap-2 sm:shrink-0">
                     <label className="relative inline-flex items-center cursor-pointer ml-2">
                       <input
                         type="checkbox"

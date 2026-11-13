@@ -77,23 +77,23 @@ export default async function AdminOrderDetailsPage({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         <Link 
           href="/admin/orders"
-          className="p-2 bg-white border border-stone-200 text-stone-600 rounded-xl hover:bg-stone-50 transition-colors"
+          className="shrink-0 p-2 bg-white border border-stone-200 text-stone-600 rounded-xl hover:bg-stone-50 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <div className="flex-1 flex justify-between items-start">
-          <div>
-            <h1 className="text-2xl font-bold text-stone-900">Order {order.order_number}</h1>
+        <div className="flex-1 min-w-0 flex justify-between items-start gap-3">
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-2xl font-bold text-stone-900 break-words">Order {order.order_number}</h1>
             <p className="text-sm text-stone-500 mt-1">
               Placed on {new Date(order.created_at).toLocaleString('en-IN', {
                 day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
               })}
             </p>
           </div>
-          <div className="bg-white border border-stone-200 rounded-xl">
+          <div className="shrink-0 bg-white border border-stone-200 rounded-xl">
             <DeleteOrderButton orderId={order.id} redirectAfter={true} />
           </div>
         </div>
@@ -105,20 +105,20 @@ export default async function AdminOrderDetailsPage({
         <div className="lg:col-span-2 space-y-6">
           
           {/* Customer & Shipping Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-4 sm:p-6">
               <h3 className="text-lg font-bold text-stone-900 flex items-center gap-2 mb-4">
                 <User className="w-5 h-5 text-stone-400" />
                 Customer
               </h3>
               <div className="space-y-2 text-sm">
                 <p className="font-medium text-stone-900">{order.customers?.full_name || 'Guest'}</p>
-                <p className="text-stone-600">{order.customers?.email}</p>
+                <p className="text-stone-600 break-all">{order.customers?.email}</p>
                 {order.customers?.phone && <p className="text-stone-600">{order.customers.phone}</p>}
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-4 sm:p-6">
               <h3 className="text-lg font-bold text-stone-900 flex items-center gap-2 mb-4">
                 <MapPin className="w-5 h-5 text-stone-400" />
                 Shipping Address
@@ -141,11 +141,69 @@ export default async function AdminOrderDetailsPage({
 
           {/* Order Items */}
           <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 overflow-hidden">
-            <div className="p-6 border-b border-stone-200/60 flex items-center gap-2">
+            <div className="p-4 sm:p-6 border-b border-stone-200/60 flex items-center gap-2">
               <Package className="w-5 h-5 text-stone-400" />
               <h3 className="text-lg font-bold text-stone-900">Order Items</h3>
             </div>
-            <div className="overflow-x-auto">
+            {/* Mobile: one card per item (an 8-column table does not fit a phone) */}
+            <ul className="md:hidden divide-y divide-stone-100">
+              {order.order_items?.map((item: any) => {
+                const product = item.product_id ? productsById[item.product_id] : null
+                const href = product?.is_active ? `/shop/${item.product_id}` : null
+                const imgSource = item.image_url || product?.image_url
+                const size = item.size || (!item.color_name && !item.design && item.variant_name !== 'Default' ? item.variant_name : null)
+
+                const thumb = (
+                  <div className="relative w-14 h-16 rounded-lg overflow-hidden shrink-0 border border-stone-200 bg-stone-100">
+                    {imgSource ? (
+                      <Image src={imgSource} alt={item.product_name} fill className="object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-stone-300 text-[10px] font-medium">IMG</div>
+                    )}
+                  </div>
+                )
+
+                return (
+                  <li key={item.id} className="px-4 py-4">
+                    <div className="flex gap-3">
+                      {thumb}
+                      <div className="min-w-0 flex-1">
+                        {href ? (
+                          <Link href={href} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-stone-900 hover:text-orange-600 transition-colors break-words">
+                            {item.product_name}
+                          </Link>
+                        ) : (
+                          <>
+                            <p className="text-sm font-semibold text-stone-900 break-words">{item.product_name}</p>
+                            <p className="text-[11px] text-stone-400 font-medium">
+                              {product ? 'Inactive — not viewable on site' : 'Product no longer available'}
+                            </p>
+                          </>
+                        )}
+                        <div className="mt-1.5 flex flex-wrap gap-1.5 text-[11px] text-stone-600">
+                          {size && <span className="px-2 py-0.5 rounded-md bg-stone-100">Size: {size}</span>}
+                          {item.color_name && <span className="px-2 py-0.5 rounded-md bg-stone-100">Color: {item.color_name}</span>}
+                          {item.design && <span className="px-2 py-0.5 rounded-md bg-stone-100">Design: {item.design}</span>}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+                      <span className="text-stone-600">₹{item.price_at_purchase} × {item.quantity}</span>
+                      <span className="font-semibold text-stone-900">₹{item.line_total}</span>
+                    </div>
+                    {item.product_id && (
+                      <div className="mt-2 flex items-center gap-2 text-xs text-stone-500">
+                        <span className="shrink-0">Product ID</span>
+                        <CopyIdButton id={item.product_id} />
+                      </div>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+
+            {/* Tablet / desktop: full table */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-sm whitespace-nowrap">
                 <thead className="bg-stone-50 text-stone-500 uppercase tracking-wider text-xs">
                   <tr>
@@ -237,7 +295,7 @@ export default async function AdminOrderDetailsPage({
             initialShiprocketStatus={order.shiprocket_status || null}
           />
 
-          <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-4 sm:p-6">
             <h3 className="text-lg font-bold text-stone-900 flex items-center gap-2 mb-6">
               <CreditCard className="w-5 h-5 text-stone-400" />
               Payment Summary
@@ -277,20 +335,20 @@ export default async function AdminOrderDetailsPage({
               {order.payu_txnid && (
                 <div className="mt-3">
                   <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1">{(order.payment_method?.match(/\(([^)]+)\)/)?.[1] || '') + ' '}Transaction ID</p>
-                  <p className="text-xs font-mono text-stone-900 bg-stone-50 p-2 rounded border border-stone-100">{order.payu_txnid}</p>
+                  <p className="text-xs font-mono text-stone-900 bg-stone-50 p-2 rounded border border-stone-100 break-all">{order.payu_txnid}</p>
                 </div>
               )}
               {order.payu_payment_id && (
                 <div className="mt-3">
                   <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1">{(order.payment_method?.match(/\(([^)]+)\)/)?.[1] || '') + ' '}Payment ID</p>
-                  <p className="text-xs font-mono text-stone-900 bg-stone-50 p-2 rounded border border-stone-100">{order.payu_payment_id}</p>
+                  <p className="text-xs font-mono text-stone-900 bg-stone-50 p-2 rounded border border-stone-100 break-all">{order.payu_payment_id}</p>
                 </div>
               )}
             </div>
           </div>
 
           {/* Timeline Section */}
-          <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-4 sm:p-6">
             <h3 className="text-lg font-bold text-stone-900 mb-6">Timeline</h3>
             <div className="space-y-4 text-sm">
               <div className="flex justify-between">

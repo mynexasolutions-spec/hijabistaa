@@ -143,7 +143,7 @@ export default async function AdminDashboardPage() {
 
       {/* Recent Orders */}
       <div className="bg-white rounded-xl border border-stone-200/80 overflow-hidden">
-        <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 border-b border-stone-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock className="w-4.5 h-4.5 text-stone-400" />
             <h2 className="text-base font-semibold text-stone-900">
@@ -161,7 +161,50 @@ export default async function AdminDashboardPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile: stacked cards instead of a 5-column table */}
+          <ul className="md:hidden divide-y divide-stone-100">
+            {recentOrders.map((order) => (
+              <li key={order.id} className="px-4 py-3.5 space-y-2">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-sm font-semibold text-stone-900 break-all">
+                    #{order.order_number}
+                  </span>
+                  <span className="text-sm font-semibold text-stone-900 shrink-0">
+                    ₹{Number(order.total_amount).toLocaleString('en-IN')}
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium capitalize ${
+                      statusColors[order.order_status] || 'bg-stone-100 text-stone-700'
+                    }`}
+                  >
+                    {order.order_status}
+                  </span>
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium capitalize ${
+                      order.payment_status === 'paid'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-yellow-100 text-yellow-700'
+                    }`}
+                  >
+                    {order.payment_status}
+                  </span>
+                  <span className="text-xs text-stone-500 ml-auto">
+                    {order.created_at ? new Date(order.created_at).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    }) : 'N/A'}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {/* Tablet / desktop: full table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-stone-50/50">
@@ -227,6 +270,7 @@ export default async function AdminDashboardPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>

@@ -39,7 +39,7 @@ export function OrderStatusManager({
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-6 space-y-6">
+    <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-4 sm:p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-bold text-stone-900">Manage Status</h3>
         {isPending && <Loader2 className="w-5 h-5 text-orange-500 animate-spin" />}

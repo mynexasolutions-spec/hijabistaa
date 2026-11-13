@@ -17,7 +17,7 @@ export default async function ManageProfilePage() {
         </p>
       </div>
 
-      <div className="bg-white p-6 rounded-2xl border border-stone-200/80 shadow-sm">
+      <div className="bg-white p-4 sm:p-6 rounded-2xl border border-stone-200/80 shadow-sm">
         <ProfileForm initialProfile={profile} />
       </div>
     </div>

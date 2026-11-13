@@ -54,7 +54,7 @@ export function InquiriesList({ initialInquiries }: { initialInquiries: any[] })
           >
             {/* Header Row */}
             <div 
-              className={`flex items-center justify-between p-5 cursor-pointer hover:bg-stone-50 transition-colors ${
+              className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-5 cursor-pointer hover:bg-stone-50 transition-colors ${
                 isUnread ? 'bg-orange-50/30' : ''
               }`}
               onClick={() => {
@@ -98,7 +98,7 @@ export function InquiriesList({ initialInquiries }: { initialInquiries: any[] })
                 </div>
               </div>
               
-              <div className="flex items-center gap-4 ml-4">
+              <div className="flex items-center justify-between sm:justify-end gap-4 sm:ml-4">
                 <span className="text-xs text-stone-400 font-medium whitespace-nowrap">
                   {new Date(inquiry.created_at).toLocaleDateString()}
                 </span>
@@ -127,9 +127,9 @@ export function InquiriesList({ initialInquiries }: { initialInquiries: any[] })
 
             {/* Expanded Content */}
             {isExpanded && (
-              <div className="p-6 border-t border-stone-100 bg-stone-50/50">
+              <div className="p-4 sm:p-6 border-t border-stone-100 bg-stone-50/50">
                 <h4 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">Message</h4>
-                <div className="bg-white p-5 rounded-xl border border-stone-200 text-sm text-stone-700 whitespace-pre-wrap leading-relaxed shadow-sm">
+                <div className="bg-white p-4 sm:p-5 rounded-xl border border-stone-200 text-sm text-stone-700 whitespace-pre-wrap break-words leading-relaxed shadow-sm">
                   {inquiry.message}
                 </div>
                 <div className="mt-4 flex justify-end">

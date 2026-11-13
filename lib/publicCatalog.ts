@@ -45,12 +45,13 @@ export async function getShopProducts(search: string, featuredOnly: boolean): Pr
   // Free-text searches are unbounded, so filter the cached full list in memory
   // instead of creating one cache entry (and one Supabase query) per query string.
   const all = (await getAllShopProducts(featuredOnly)) as any[]
-  const needle = term.toLowerCase()
-  return all.filter(
-    (p) =>
-      String(p.name || '').toLowerCase().includes(needle) ||
-      String(p.category_id || '').toLowerCase().includes(needle)
-  )
+  // Every word must appear (in any order) in the product name or category, so
+  // "premium neck" finds "PREMIUM JERSEY TURTLE NECK COVER".
+  const words = term.toLowerCase().split(/\s+/).filter(Boolean)
+  return all.filter((p) => {
+    const haystack = `${p.name || ''} ${p.category_id || ''}`.toLowerCase()
+    return words.every((w) => haystack.includes(w))
+  })
 }
 
 export const getHomeProducts = unstable_cache(

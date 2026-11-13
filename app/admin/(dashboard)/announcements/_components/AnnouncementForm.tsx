@@ -123,7 +123,7 @@ export function AnnouncementForm({ initialConfig }: { initialConfig: Announcemen
     <div className="space-y-6 pb-20">
       
       {/* Live Preview Panel */}
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-6 sm:p-8">
+      <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-4 sm:p-8">
         <h2 className="text-sm font-bold text-stone-500 uppercase tracking-wider mb-4">Live Preview</h2>
         <BannerPreview config={config} />
       </div>
@@ -138,7 +138,7 @@ export function AnnouncementForm({ initialConfig }: { initialConfig: Announcemen
         
         {/* Left Column: Messages Manager */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-6 sm:p-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-4 sm:p-8">
             
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -168,8 +168,8 @@ export function AnnouncementForm({ initialConfig }: { initialConfig: Announcemen
                     </div>
                     
                     <div className="flex-1 space-y-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 relative">
+                      <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+                        <div className="flex-1 min-w-[180px] relative">
                           <Type className="absolute left-3 top-3 w-4 h-4 text-stone-400" />
                           <input
                             type="text"
@@ -190,8 +190,8 @@ export function AnnouncementForm({ initialConfig }: { initialConfig: Announcemen
                         </label>
                       </div>
 
-                      <div className="flex items-center gap-4">
-                        <div className="flex-1 relative">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                        <div className="flex-1 min-w-[180px] relative">
                           <LinkIcon className="absolute left-3 top-3 w-4 h-4 text-stone-400" />
                           <input
                             type="text"
@@ -235,7 +235,7 @@ export function AnnouncementForm({ initialConfig }: { initialConfig: Announcemen
 
         {/* Right Column: Design Settings */}
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-4 sm:p-6">
             <div className="flex items-center gap-2 mb-6">
               <Settings2 className="w-5 h-5 text-stone-700" />
               <h3 className="font-bold text-stone-900 text-lg">Design</h3>
@@ -292,7 +292,7 @@ export function AnnouncementForm({ initialConfig }: { initialConfig: Announcemen
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-stone-500 uppercase mb-2">Height</label>
                   <input

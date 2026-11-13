@@ -72,8 +72,8 @@ export default function ProductFaqEditor({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-stone-200/80 p-6 space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="bg-white rounded-xl border border-stone-200/80 p-4 sm:p-6 space-y-4">
+      <div className="flex flex-wrap items-start sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold text-stone-900">
             Frequently Asked Questions

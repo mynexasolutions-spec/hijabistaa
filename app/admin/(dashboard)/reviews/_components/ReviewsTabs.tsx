@@ -71,10 +71,10 @@ export function ReviewsTabs({
     <div className="space-y-6">
       {/* Tab Navigation & Top Action Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200">
-        <div className="flex gap-4">
+        <div className="flex gap-2 sm:gap-4 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab('products')}
-            className={`flex items-center gap-2 pb-3 px-2 font-medium text-sm transition-all relative ${
+            className={`flex items-center gap-2 pb-3 px-2 font-medium text-sm transition-all relative whitespace-nowrap shrink-0 ${
               activeTab === 'products'
                 ? 'text-teal-800 font-semibold'
                 : 'text-stone-500 hover:text-stone-800'
@@ -92,7 +92,7 @@ export function ReviewsTabs({
 
           <button
             onClick={() => setActiveTab('home')}
-            className={`flex items-center gap-2 pb-3 px-2 font-medium text-sm transition-all relative ${
+            className={`flex items-center gap-2 pb-3 px-2 font-medium text-sm transition-all relative whitespace-nowrap shrink-0 ${
               activeTab === 'home'
                 ? 'text-teal-800 font-semibold'
                 : 'text-stone-500 hover:text-stone-800'
@@ -111,7 +111,7 @@ export function ReviewsTabs({
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-teal-800 hover:bg-teal-900 text-white font-medium rounded-xl text-sm transition-all shadow-sm hover:shadow mb-2 sm:mb-1 shrink-0"
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-teal-800 hover:bg-teal-900 text-white font-medium rounded-xl text-sm transition-all shadow-sm hover:shadow mb-3 sm:mb-1 shrink-0 w-full sm:w-auto"
         >
           <PlusCircle className="w-4 h-4" />
           <span>Add Home Review</span>
@@ -144,7 +144,7 @@ export function ReviewsTabs({
       {/* Popup Modal for Add Home Review */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl border border-stone-200 p-6 w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-6 w-full max-w-lg shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-stone-200 mb-4">
               <h2 className="text-lg font-semibold text-stone-900 flex items-center gap-2">
                 <PlusCircle className="w-5 h-5 text-teal-700" />

@@ -95,8 +95,8 @@ export function ShiprocketPanel({
   }, [])
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-6 space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-4 sm:p-6 space-y-4">
+      <div className="flex items-center justify-between gap-2">
         <h3 className="text-lg font-bold text-stone-900 flex items-center gap-2">
           <Truck className="w-5 h-5 text-stone-400" />
           Shipping (Shiprocket)
@@ -166,21 +166,21 @@ export function ShiprocketPanel({
             <CheckCircle2 className="w-4 h-4" />
             <span className="font-medium">Order sent to Shiprocket</span>
           </div>
-          <div className="flex justify-between text-stone-600">
-            <span>Shiprocket Order ID</span>
-            <span className="font-mono text-stone-900">{shiprocketOrderId}</span>
+          <div className="flex justify-between gap-3 text-stone-600">
+            <span className="shrink-0">Shiprocket Order ID</span>
+            <span className="font-mono text-stone-900 break-all text-right">{shiprocketOrderId}</span>
           </div>
 
           {awbCode ? (
             <>
-              <div className="flex justify-between text-stone-600">
-                <span>AWB Code</span>
-                <span className="font-mono text-stone-900">{awbCode}</span>
+              <div className="flex justify-between gap-3 text-stone-600">
+                <span className="shrink-0">AWB Code</span>
+                <span className="font-mono text-stone-900 break-all text-right">{awbCode}</span>
               </div>
               {courierName && (
-                <div className="flex justify-between text-stone-600">
-                  <span>Courier</span>
-                  <span className="font-medium text-stone-900">{courierName}</span>
+                <div className="flex justify-between gap-3 text-stone-600">
+                  <span className="shrink-0">Courier</span>
+                  <span className="font-medium text-stone-900 text-right">{courierName}</span>
                 </div>
               )}
               {status && (
@@ -192,9 +192,9 @@ export function ShiprocketPanel({
                 </div>
               )}
               {currentLocation && (
-                <div className="flex justify-between items-center text-stone-600">
-                  <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-stone-400" /> Current Location</span>
-                  <span className="font-medium text-stone-900">{currentLocation}</span>
+                <div className="flex justify-between items-center gap-3 text-stone-600">
+                  <span className="flex items-center gap-1.5 shrink-0"><MapPin className="w-3.5 h-3.5 text-stone-400" /> Current Location</span>
+                  <span className="font-medium text-stone-900 text-right">{currentLocation}</span>
                 </div>
               )}
               <a

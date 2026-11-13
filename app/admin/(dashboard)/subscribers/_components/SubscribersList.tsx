@@ -132,17 +132,17 @@ export function SubscribersList({ initialSubscribers }: { initialSubscribers: Su
             Manage user email subscriptions gathered from website newsletter forms.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-3">
           <button
             onClick={handleExportCSV}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-700 font-semibold text-sm hover:bg-stone-50 transition-all shadow-sm"
+            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 rounded-xl whitespace-nowrap border border-stone-200 bg-white text-stone-700 font-semibold text-sm hover:bg-stone-50 transition-all shadow-sm"
           >
             <Download className="w-4 h-4 text-stone-500" />
             Export CSV
           </button>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#9C5247] text-white font-semibold text-sm hover:bg-[#7E3F35] transition-all shadow-sm"
+            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 rounded-xl whitespace-nowrap bg-[#9C5247] text-white font-semibold text-sm hover:bg-[#7E3F35] transition-all shadow-sm"
           >
             <Plus className="w-4 h-4" />
             Add Subscriber
@@ -151,7 +151,7 @@ export function SubscribersList({ initialSubscribers }: { initialSubscribers: Su
       </div>
 
       {/* Overview Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
         <div className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
             <Mail className="w-6 h-6" />
@@ -184,8 +184,8 @@ export function SubscribersList({ initialSubscribers }: { initialSubscribers: Su
       </div>
 
       {/* Filter / Search Bar */}
-      <div className="bg-white rounded-2xl border border-stone-200/80 shadow-sm p-4 flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="bg-white rounded-2xl border border-stone-200/80 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="relative w-full sm:flex-1 max-w-md">
           <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
@@ -195,7 +195,7 @@ export function SubscribersList({ initialSubscribers }: { initialSubscribers: Su
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-[#9C5247] focus:ring-1 focus:ring-[#9C5247] transition-all"
           />
         </div>
-        <p className="text-xs font-medium text-stone-500 hidden sm:block">
+        <p className="text-xs font-medium text-stone-500 shrink-0">
           Showing {filteredSubscribers.length} of {totalCount} subscribers
         </p>
       </div>
@@ -211,7 +211,70 @@ export function SubscribersList({ initialSubscribers }: { initialSubscribers: Su
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile: one card per subscriber (a 4-column table does not fit a phone) */}
+          <ul className="md:hidden divide-y divide-stone-100">
+            {filteredSubscribers.map((sub) => (
+              <li key={sub.id} className="px-4 py-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-[#9C5247]/10 text-[#9C5247] flex items-center justify-center font-bold text-sm shrink-0">
+                    {sub.email.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-stone-900 text-sm break-all">{sub.email}</p>
+                    <p className="text-xs text-stone-400 flex items-center gap-1.5 mt-0.5">
+                      <Calendar className="w-3 h-3" />
+                      {new Date(sub.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Subscribed
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <a
+                      href={`mailto:${sub.email}`}
+                      title="Send Email"
+                      aria-label="Send email"
+                      className="p-2 rounded-lg text-stone-400 hover:text-[#9C5247] hover:bg-stone-100 transition-all"
+                    >
+                      <Send className="w-4 h-4" />
+                    </a>
+                    <button
+                      onClick={() => handleCopy(sub.email, sub.id)}
+                      title="Copy Email"
+                      aria-label="Copy email"
+                      className="p-2 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-all"
+                    >
+                      {copiedId === sub.id ? (
+                        <Check className="w-4 h-4 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(sub)}
+                      disabled={deletingId === sub.id}
+                      title="Delete Subscriber"
+                      aria-label="Delete subscriber"
+                      className="p-2 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition-all disabled:opacity-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {/* Tablet / desktop: original table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-stone-100 bg-stone-50/50 text-[12px] font-semibold text-stone-500 uppercase tracking-wider">
@@ -284,6 +347,7 @@ export function SubscribersList({ initialSubscribers }: { initialSubscribers: Su
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 
@@ -294,7 +358,7 @@ export function SubscribersList({ initialSubscribers }: { initialSubscribers: Su
             className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs"
             onClick={() => setIsAddModalOpen(false)}
           />
-          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl p-6 z-10 animate-fade-in">
+          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl p-4 sm:p-6 z-10 animate-fade-in">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-bold text-stone-900 flex items-center gap-2">
                 <Mail className="w-5 h-5 text-[#9C5247]" />

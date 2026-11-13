@@ -93,10 +93,14 @@ export default function ShopGrid({ initialProducts, categories, selectedCategory
           <h3 className="font-display font-bold text-xl text-ink">Categories</h3>
           <button
             onClick={() => {
+              const currentSearch = new URLSearchParams(window.location.search).get('search');
+              const hasActiveFilters = selectedCategories.length > 0 || maxPrice < 15000;
               setSelectedCategories([]);
               setMaxPrice(15000);
-              const currentSearch = new URLSearchParams(window.location.search).get('search');
-              if (currentSearch) {
+              // With active filters, Reset clears them but keeps the search. If only the
+              // search is active (nothing else to reset), Reset clears the search too —
+              // otherwise the click would appear to do nothing.
+              if (currentSearch && hasActiveFilters) {
                  router.push(`/shop?search=${encodeURIComponent(currentSearch)}`);
               } else {
                  router.push('/shop');

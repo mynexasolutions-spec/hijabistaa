@@ -90,7 +90,7 @@ export function GlobalFaqsEditor({ initialFaqs }: { initialFaqs: Faq[] }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold leading-7 text-gray-900">Global FAQs</h2>
           <p className="mt-1 text-sm leading-6 text-gray-600">
@@ -109,8 +109,8 @@ export function GlobalFaqsEditor({ initialFaqs }: { initialFaqs: Faq[] }) {
 
       <div className="space-y-4">
         {faqs.map((faq, index) => (
-          <form key={faq.id} onSubmit={(e) => handleUpdate(faq.id, e)} className="relative flex items-start gap-4 p-4 border rounded-lg bg-gray-50 group">
-            <div className="flex flex-col gap-1 pt-2">
+          <form key={faq.id} onSubmit={(e) => handleUpdate(faq.id, e)} className="relative flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 p-4 border rounded-lg bg-gray-50 group">
+            <div className="flex sm:flex-col gap-2 sm:gap-1 sm:pt-2">
               <button type="button" onClick={() => moveUp(index)} disabled={index === 0} className="text-gray-400 hover:text-gray-600 disabled:opacity-30">
                 <GripVertical className="h-4 w-4" />
               </button>
@@ -140,7 +140,7 @@ export function GlobalFaqsEditor({ initialFaqs }: { initialFaqs: Faq[] }) {
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 pt-1">
+            <div className="flex flex-row sm:flex-col justify-end gap-2 sm:pt-1">
               <button
                 type="button"
                 onClick={() => handleDelete(faq.id)}
@@ -161,7 +161,7 @@ export function GlobalFaqsEditor({ initialFaqs }: { initialFaqs: Faq[] }) {
         ))}
 
         {isAdding && (
-          <form onSubmit={handleAdd} className="relative flex items-start gap-4 p-4 border rounded-lg bg-white border-indigo-200">
+          <form onSubmit={handleAdd} className="relative flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 p-4 border rounded-lg bg-white border-indigo-200">
             <div className="flex-1 space-y-4">
               <div>
                 <label className="block text-sm font-medium leading-6 text-gray-900">Question</label>
@@ -182,7 +182,7 @@ export function GlobalFaqsEditor({ initialFaqs }: { initialFaqs: Faq[] }) {
                 />
               </div>
             </div>
-            <div className="flex flex-col gap-2 pt-6">
+            <div className="flex flex-row sm:flex-col justify-end gap-2 sm:pt-6">
               <button
                 type="submit"
                 disabled={loading}

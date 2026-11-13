@@ -113,7 +113,7 @@ export function HeroSlideList({
   const activeCount = slides.filter(s => s.is_active).length
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-6 relative">
+    <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-4 sm:p-6 relative">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-2">
           <ImageIcon className="w-5 h-5 text-stone-400" />
@@ -242,7 +242,7 @@ export function HeroSlideList({
       {/* Modal for Selecting Preset Image or Custom URL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-stone-200 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-xl border border-stone-200 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-stone-100 pb-4 mb-4">
               <h3 className="text-lg font-bold text-stone-900">Add Hero Section Slide</h3>
               <button 

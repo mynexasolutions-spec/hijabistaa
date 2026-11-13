@@ -47,7 +47,54 @@ export function TestimonialList({ initialTestimonials }: { initialTestimonials: 
 
   return (
     <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm">
-      <div className="overflow-x-auto">
+      {/* Mobile: one card per home review */}
+      <ul className="md:hidden divide-y divide-stone-100">
+        {initialTestimonials.map((item) => (
+          <li key={item.id} className="px-4 py-4 space-y-2.5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-stone-900 break-words">{item.name}</p>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  {item.city || 'Verified'} · {item.product || 'General'}
+                </p>
+              </div>
+              {item.is_active ? (
+                <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  Active
+                </span>
+              ) : (
+                <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                  <Clock className="w-3.5 h-3.5" />
+                  Hidden
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-0.5">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`w-4 h-4 ${i < item.rating ? 'fill-orange-400 text-orange-400' : 'text-stone-200'}`}
+                />
+              ))}
+            </div>
+            <p className="text-sm text-stone-600 break-words">&quot;{item.quote}&quot;</p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => handleDelete(item.id)}
+                disabled={isProcessing === item.id}
+                className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                aria-label="Delete review"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      {/* Tablet / desktop: original table */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-stone-50 border-b border-stone-200 text-stone-600 text-sm">

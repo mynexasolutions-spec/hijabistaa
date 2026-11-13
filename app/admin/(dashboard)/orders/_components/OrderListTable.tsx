@@ -9,6 +9,19 @@ interface OrderListTableProps {
   initialOrders: any[]
 }
 
+const paymentBadge = (status: string) =>
+  status === 'paid' ? 'bg-green-50 text-green-700 border-green-200' :
+  status === 'failed' ? 'bg-red-50 text-red-700 border-red-200' :
+  status === 'refunded' ? 'bg-stone-100 text-stone-700 border-stone-200' :
+  'bg-orange-50 text-orange-700 border-orange-200'
+
+const orderBadge = (status: string) =>
+  status === 'delivered' ? 'bg-green-50 text-green-700 border-green-200' :
+  status === 'shipped' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+  status === 'processing' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+  status === 'cancelled' ? 'bg-red-50 text-red-700 border-red-200' :
+  'bg-orange-50 text-orange-700 border-orange-200'
+
 export function OrderListTable({ initialOrders }: OrderListTableProps) {
   const [search, setSearch] = useState('')
   const [orderStatus, setOrderStatus] = useState('all')
@@ -75,9 +88,64 @@ export function OrderListTable({ initialOrders }: OrderListTableProps) {
         </div>
       </div>
 
-      {/* Orders Table */}
+      {/* Orders */}
       <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile: stacked cards (a 7-column table does not fit a phone) */}
+        <div className="md:hidden">
+          {filteredOrders.length === 0 ? (
+            <p className="px-4 py-12 text-center text-sm text-stone-500">No orders match the filters.</p>
+          ) : (
+            <ul className="divide-y divide-stone-100">
+              {filteredOrders.map((order: any) => (
+                <li key={order.id} className="px-4 py-4 space-y-2.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-stone-900 break-all">{order.order_number}</p>
+                      <p className="text-xs text-stone-500 mt-0.5">
+                        {new Date(order.created_at).toLocaleDateString('en-IN', {
+                          day: 'numeric', month: 'short', year: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                    <p className="text-sm font-semibold text-stone-900 shrink-0">₹{order.total_amount}</p>
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-stone-900 truncate">{order.customers?.full_name || 'Guest'}</p>
+                    {order.customers?.email && (
+                      <p className="text-xs text-stone-500 truncate">{order.customers.email}</p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border ${paymentBadge(order.payment_status)}`}>
+                        {order.payment_status.toUpperCase()}
+                      </span>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium border ${orderBadge(order.order_status)}`}>
+                        {order.order_status.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className="inline-flex items-center justify-center p-2 text-stone-400 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-colors"
+                        title="View Details"
+                        aria-label="View order details"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Link>
+                      <DeleteOrderButton orderId={order.id} />
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Tablet / desktop: original table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-stone-50 text-stone-500 uppercase tracking-wider text-xs border-b border-stone-200/60">
               <tr>

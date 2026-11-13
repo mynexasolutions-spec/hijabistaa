@@ -18,10 +18,10 @@ export default async function AdminCouponsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8">
         {/* Left Column: Create Coupon */}
         <div className="xl:col-span-4">
-          <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-stone-200 shadow-sm space-y-4">
             <h3 className="text-sm font-bold text-stone-800 uppercase tracking-wider">
               Create New Coupon
             </h3>

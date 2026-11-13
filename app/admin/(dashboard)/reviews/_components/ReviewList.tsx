@@ -67,6 +67,15 @@ export function ReviewList({ initialReviews }: { initialReviews: Review[] }) {
     setIsProcessing(null)
   }
 
+  const describeReview = (review: Review) => {
+    const matchedProduct = allKnownProducts.find((p: any) => p.id === review.product_id || p.slug === review.product_id)
+    const displayProductName = (review.products?.name && review.products?.name !== 'Modest Collection Style')
+      ? review.products.name
+      : matchedProduct?.name || review.products?.name || `Style #${review.product_id}`
+    const reviewContent = review.comment || review.review_text || null
+    return { displayProductName, reviewContent }
+  }
+
   if (reviews.length === 0) {
     return (
       <div className="bg-white rounded-2xl border border-stone-200 p-12 text-center">
@@ -77,7 +86,76 @@ export function ReviewList({ initialReviews }: { initialReviews: Review[] }) {
 
   return (
     <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden">
-      <div className="overflow-x-auto">
+      {/* Mobile: one card per review (a 6-column table does not fit a phone) */}
+      <ul className="md:hidden divide-y divide-stone-100">
+        {reviews.map((review) => {
+          const { displayProductName, reviewContent } = describeReview(review)
+          return (
+            <li key={review.id} className="px-4 py-4 space-y-2.5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-stone-900 break-words">{displayProductName}</p>
+                  <p className="text-xs text-stone-500 mt-0.5 truncate">
+                    {review.customers?.full_name || 'Verified Buyer'}
+                    {review.customers?.email ? ` · ${review.customers.email}` : ''}
+                  </p>
+                </div>
+                {review.is_approved ? (
+                  <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    Approved
+                  </span>
+                ) : (
+                  <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                    <Clock className="w-3.5 h-3.5" />
+                    Pending
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-4 h-4 ${i < review.rating ? 'fill-orange-400 text-orange-400' : 'text-stone-200'}`}
+                    />
+                  ))}
+                </div>
+                <span className="text-xs text-stone-400">{new Date(review.created_at).toLocaleDateString()}</span>
+              </div>
+
+              <p className="text-sm text-stone-600 break-words">
+                {reviewContent || <span className="italic text-stone-400">No text</span>}
+              </p>
+
+              <div className="flex items-center justify-end gap-2">
+                {!review.is_approved && (
+                  <button
+                    onClick={() => handleApprove(review.id)}
+                    disabled={isProcessing === review.id}
+                    className="px-3 py-2 text-amber-700 bg-amber-50 hover:text-green-700 hover:bg-green-100 rounded-lg transition-colors disabled:opacity-50 font-medium text-xs flex items-center gap-1"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Approve</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => handleDelete(review.id)}
+                  disabled={isProcessing === review.id}
+                  className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                  aria-label="Delete review"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+
+      {/* Tablet / desktop: original table */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-stone-50 border-b border-stone-200 text-stone-600 text-sm">

@@ -107,7 +107,7 @@ export default function ProductForm({ product, categories, otherProducts = [] }:
         {/* Main column */}
         <div className="lg:col-span-2 space-y-6">
           {/* Basic Info */}
-          <div className="bg-white rounded-xl border border-stone-200/80 p-6 space-y-5">
+          <div className="bg-white rounded-xl border border-stone-200/80 p-4 sm:p-6 space-y-5">
             <h2 className="text-base font-semibold text-stone-900">
               Basic Information
             </h2>
@@ -243,7 +243,7 @@ export default function ProductForm({ product, categories, otherProducts = [] }:
           </div>
 
           {/* SEO */}
-          <div className="bg-white rounded-xl border border-stone-200/80 p-6 space-y-5">
+          <div className="bg-white rounded-xl border border-stone-200/80 p-4 sm:p-6 space-y-5">
             <h2 className="text-base font-semibold text-stone-900">SEO</h2>
 
             <div>
@@ -287,7 +287,7 @@ export default function ProductForm({ product, categories, otherProducts = [] }:
         {/* Sidebar column */}
         <div className="lg:col-span-1 space-y-6">
           {/* Status */}
-          <div className="bg-white rounded-xl border border-stone-200/80 p-6 space-y-5">
+          <div className="bg-white rounded-xl border border-stone-200/80 p-4 sm:p-6 space-y-5">
             <h2 className="text-base font-semibold text-stone-900">Status & Size</h2>
 
             {/* Badge / Tag */}
@@ -460,7 +460,7 @@ export default function ProductForm({ product, categories, otherProducts = [] }:
       </div>
 
       {/* Actions */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           href="/admin/products"
           className="inline-flex items-center gap-2 text-sm text-stone-500 hover:text-stone-700 transition-colors"

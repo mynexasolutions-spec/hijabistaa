@@ -26,12 +26,12 @@ export function SyncAllShiprocketButton() {
   }
 
   return (
-    <div className="flex flex-col items-end gap-1.5">
+    <div className="flex flex-col items-stretch sm:items-end gap-1.5 w-full sm:w-auto">
       <button
         onClick={handleSyncAll}
         disabled={isPending}
         title="Fetch the latest status from Shiprocket for every order ever pushed there — useful for catching up orders the webhook missed"
-        className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-stone-200 text-stone-700 text-sm font-semibold rounded-xl shadow-sm hover:bg-stone-50 transition-colors disabled:opacity-60"
+        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-stone-200 text-stone-700 text-sm font-semibold rounded-xl shadow-sm hover:bg-stone-50 transition-colors disabled:opacity-60"
       >
         <RefreshCw className={`w-4 h-4 ${isPending ? 'animate-spin' : ''}`} />
         {isPending ? 'Syncing all orders…' : 'Sync All with Shiprocket'}

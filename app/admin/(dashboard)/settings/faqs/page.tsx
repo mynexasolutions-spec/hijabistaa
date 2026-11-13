@@ -17,7 +17,7 @@ export default async function GlobalFaqsPage() {
         </p>
       </div>
 
-      <div className="bg-white p-6 shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
+      <div className="bg-white p-4 sm:p-6 shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
         <GlobalFaqsEditor initialFaqs={initialFaqs || []} />
       </div>
     </div>

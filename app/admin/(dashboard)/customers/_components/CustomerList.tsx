@@ -58,9 +58,80 @@ export default function CustomerList({ initialCustomers }: CustomerListProps) {
         />
       </div>
 
-      {/* Table */}
+      {/* Customers */}
       <div className="bg-white rounded-xl shadow-sm border border-stone-200/80 overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile: one card per customer (a 5-column table does not fit a phone) */}
+        <div className="md:hidden">
+          {filteredCustomers.length > 0 ? (
+            <ul className="divide-y divide-stone-200">
+              {filteredCustomers.map((customer) => (
+                <li key={customer.id} className="px-4 py-4 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-orange-100 to-orange-100 flex items-center justify-center text-orange-600 font-bold border border-orange-200">
+                      {customer.full_name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-stone-900 break-words">{customer.full_name}</p>
+                      <p className="text-xs text-stone-500 font-mono">ID: {customer.id.substring(0, 8)}...</p>
+                    </div>
+                    <span
+                      className={`shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        customer.is_active
+                          ? 'bg-green-100 text-green-800 border border-green-200'
+                          : 'bg-red-100 text-red-800 border border-red-200'
+                      }`}
+                    >
+                      {customer.is_active ? 'Active' : 'Suspended'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5 text-sm">
+                    <div className="flex items-center gap-2 text-stone-900 min-w-0">
+                      <Mail className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                      <span className="break-all">{customer.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-stone-500">
+                      <Phone className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                      {customer.phone || 'N/A'}
+                    </div>
+                    <div className="flex items-center gap-2 text-stone-500">
+                      <Calendar className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                      Joined {new Date(customer.created_at).toLocaleDateString()}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleToggleStatus(customer.id, customer.is_active)}
+                    disabled={isLoading === customer.id}
+                    className={`w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                      customer.is_active
+                        ? 'text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700'
+                        : 'text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {isLoading === customer.id ? (
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : customer.is_active ? (
+                      <UserX className="w-4 h-4" />
+                    ) : (
+                      <UserCheck className="w-4 h-4" />
+                    )}
+                    {customer.is_active ? 'Suspend' : 'Activate'}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="px-4 py-12 flex flex-col items-center justify-center text-center text-stone-500">
+              <UserX className="w-12 h-12 text-stone-300 mb-3" />
+              <p className="text-lg font-medium text-stone-900">No customers found</p>
+              <p className="text-sm">We couldn&apos;t find any customers matching your search.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Tablet / desktop: original table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="min-w-full divide-y divide-stone-200">
             <thead className="bg-stone-50">
               <tr>

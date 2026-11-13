@@ -179,7 +179,7 @@ export default function ShippingForm({ initialShipping }: { initialShipping: any
                 placeholder="e.g. 1"
                 value={tier.min_qty}
                 onChange={e => updateTier(index, 'min_qty', e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-700/40 focus:border-teal-700 transition-all"
+                className="w-full px-2 sm:px-3 py-2 rounded-lg border border-stone-200 bg-white text-stone-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-700/40 focus:border-teal-700 transition-all"
               />
               <input
                 type="number"

@@ -198,8 +198,8 @@ export function InstagramPostsList({ initialPosts }: { initialPosts: InstagramPo
       </div>
 
       {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-sm flex items-center gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/80 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-pink-500/10 text-pink-600 flex items-center justify-center shrink-0">
             <Instagram className="w-6 h-6" />
           </div>
@@ -209,7 +209,7 @@ export function InstagramPostsList({ initialPosts }: { initialPosts: InstagramPo
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-sm flex items-center gap-4">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/80 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
             <Eye className="w-6 h-6" />
           </div>
@@ -219,7 +219,7 @@ export function InstagramPostsList({ initialPosts }: { initialPosts: InstagramPo
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-sm flex items-center gap-4">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/80 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
             <Sparkles className="w-6 h-6" />
           </div>
@@ -316,7 +316,7 @@ export function InstagramPostsList({ initialPosts }: { initialPosts: InstagramPo
             className="fixed inset-0 bg-stone-900/40 backdrop-blur-xs"
             onClick={() => setIsModalOpen(false)}
           />
-          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl p-6 z-10 animate-fade-in max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl p-4 sm:p-6 z-10 animate-fade-in max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-bold text-stone-900 flex items-center gap-2">
                 <Instagram className="w-5 h-5 text-[#9C5247]" />
@@ -407,7 +407,7 @@ export function InstagramPostsList({ initialPosts }: { initialPosts: InstagramPo
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-1.5">
                     Display Order

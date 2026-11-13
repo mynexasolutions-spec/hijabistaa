@@ -34,7 +34,43 @@ export default function CouponsList({ initialCoupons }: { initialCoupons: Coupon
   }
 
   return (
-    <div className="overflow-x-auto">
+    <>
+    {/* Mobile: one card per coupon (a 6-column table does not fit a phone) */}
+    <ul className="md:hidden divide-y divide-stone-100">
+      {coupons.map((coupon) => (
+        <li key={coupon.id} className="px-4 py-4 flex items-start justify-between gap-3">
+          <div className="min-w-0 space-y-1.5">
+            <p className="font-bold text-stone-900 text-sm break-all">{coupon.code}</p>
+            <p className="text-sm text-stone-700">
+              <span className="font-semibold">
+                {coupon.type === 'percentage' ? `${coupon.value}% off` : `₹${coupon.value} off`}
+              </span>
+              <span className="text-stone-500"> · min ₹{coupon.min_purchase}</span>
+            </p>
+            {coupon.is_active ? (
+              <span className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded-full font-semibold">
+                <ShieldCheck className="w-3.5 h-3.5" /> Active
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-xs text-stone-500 bg-stone-100 px-2 py-0.5 rounded-full">
+                <ShieldAlert className="w-3.5 h-3.5" /> Inactive
+              </span>
+            )}
+          </div>
+          <button
+            onClick={() => handleDelete(coupon.id)}
+            disabled={pending}
+            className="p-2 shrink-0 text-stone-400 hover:text-red-500 transition-colors disabled:opacity-50"
+            aria-label="Delete coupon"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </li>
+      ))}
+    </ul>
+
+    {/* Tablet / desktop: original table */}
+    <div className="hidden md:block overflow-x-auto">
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="bg-stone-50 text-stone-500 text-xs font-bold uppercase border-b border-stone-100">
@@ -81,5 +117,6 @@ export default function CouponsList({ initialCoupons }: { initialCoupons: Coupon
         </tbody>
       </table>
     </div>
+    </>
   )
 }

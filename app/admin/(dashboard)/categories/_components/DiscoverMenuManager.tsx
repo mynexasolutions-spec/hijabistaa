@@ -140,7 +140,7 @@ export default function DiscoverMenuManager({ initialItems }: { initialItems: an
 
   return (
     <div className="bg-white rounded-xl border border-stone-200/80 overflow-hidden mt-8">
-      <div className="p-6 border-b border-stone-100 flex items-center justify-between">
+      <div className="p-4 sm:p-6 border-b border-stone-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-stone-900">Mega Menu: Discover Section</h2>
           <p className="text-stone-500 text-sm mt-0.5">Manage the cards displayed in the Header Categories dropdown</p>
@@ -148,14 +148,14 @@ export default function DiscoverMenuManager({ initialItems }: { initialItems: an
         {!isAdding && !editingId && items.length < 6 && (
           <button
             onClick={handleAddNew}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#9C5247] text-white text-sm font-semibold rounded-xl hover:bg-[#7E3F35] transition-colors shadow-sm"
+            className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 bg-[#9C5247] text-white text-sm font-semibold rounded-xl hover:bg-[#7E3F35] transition-colors shadow-sm"
           >
             <Plus className="w-4 h-4" /> Add Discover Item
           </button>
         )}
       </div>
 
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {error && (
           <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm border border-red-100 font-medium">
             {error}
@@ -163,7 +163,7 @@ export default function DiscoverMenuManager({ initialItems }: { initialItems: an
         )}
 
         {(isAdding || editingId) && (
-          <form ref={formRef} onSubmit={handleSubmit} className="mb-8 bg-stone-50 p-5 rounded-2xl border border-stone-200 space-y-4">
+          <form ref={formRef} onSubmit={handleSubmit} className="mb-8 bg-stone-50 p-4 sm:p-5 rounded-2xl border border-stone-200 space-y-4">
             <div className="flex items-center justify-between border-b border-stone-200 pb-3">
               <h3 className="text-base font-bold text-stone-900">
                 {editingId ? 'Edit Discover Item' : 'Add New Discover Item'}
@@ -298,7 +298,7 @@ export default function DiscoverMenuManager({ initialItems }: { initialItems: an
           </form>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {items.length === 0 && !isAdding && (
             <div className="col-span-full py-8 text-center text-stone-500 text-sm bg-stone-50 rounded-xl border border-dashed border-stone-200">
               No discover items added yet. Click "Add Discover Item" to create one.
@@ -324,7 +324,7 @@ export default function DiscoverMenuManager({ initialItems }: { initialItems: an
               </div>
               
               {/* Actions Overlay */}
-              <div className="absolute top-2 right-2 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute top-2 right-2 flex flex-col gap-1.5 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => handleToggle(item.id, item.is_active)}
                   className={`w-7 h-7 rounded-full flex items-center justify-center shadow-sm backdrop-blur-md transition-colors ${item.is_active ? 'bg-white/80 text-green-600 hover:bg-white' : 'bg-stone-800/80 text-white hover:bg-stone-900'}`}

@@ -46,7 +46,7 @@ export function PromoPopupManager({ initialSettings }: PromoPopupManagerProps) {
       />
 
       {/* Header & Main Toggle */}
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
           <div className="p-2.5 bg-orange-100 text-orange-700 rounded-xl shrink-0 mt-0.5">
             <Gift className="w-6 h-6" />
@@ -196,7 +196,7 @@ export function PromoPopupManager({ initialSettings }: PromoPopupManagerProps) {
       </div>
 
       {/* Content & Copy Settings */}
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-6 space-y-5">
+      <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-4 sm:p-6 space-y-5">
         <div className="flex items-center gap-2.5 border-b border-stone-100 pb-4">
           <Sparkles className="w-5 h-5 text-orange-600" />
           <h3 className="text-base font-bold text-stone-900">Popup Content & Coupon Details</h3>
@@ -277,7 +277,7 @@ export function PromoPopupManager({ initialSettings }: PromoPopupManagerProps) {
       </div>
 
       {/* Button & Image Settings */}
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-6 space-y-5">
+      <div className="bg-white rounded-2xl shadow-sm border border-stone-200/60 p-4 sm:p-6 space-y-5">
         <div className="flex items-center gap-2.5 border-b border-stone-100 pb-4">
           <ImageIcon className="w-5 h-5 text-orange-600" />
           <h3 className="text-base font-bold text-stone-900">Right-Side Image & Button Destination</h3>
@@ -369,7 +369,7 @@ export function PromoPopupManager({ initialSettings }: PromoPopupManagerProps) {
       </div>
 
       {/* Save Button */}
-      <div className="flex items-center justify-end gap-3 pt-2">
+      <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
         {savedMessage && (
           <div className="flex items-center gap-2 text-green-600 bg-green-50 px-3.5 py-2 rounded-xl text-sm font-semibold border border-green-200">
             <CheckCircle className="w-4 h-4" />

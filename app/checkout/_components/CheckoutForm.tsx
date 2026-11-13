@@ -13,7 +13,12 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { calculateShippingCharge, type ShippingSettings } from '@/lib/shipping'
 
-export default function CheckoutForm({ shipping, isLoggedIn, paymentFailed = false }: { shipping: ShippingSettings, isLoggedIn: boolean, paymentFailed?: boolean }) {
+type SavedProfile = {
+  fullName: string; email: string; phone: string; alternatePhone: string
+  street: string; city: string; state: string; zipCode: string
+}
+
+export default function CheckoutForm({ shipping, isLoggedIn, initialProfile = null, paymentFailed = false }: { shipping: ShippingSettings, isLoggedIn: boolean, initialProfile?: SavedProfile | null, paymentFailed?: boolean }) {
   const { cart, cartTotal, clearCart, updateQuantity, removeFromCart } = useCart()
   const { showToast } = useToast()
   const [pending, startTransition] = useTransition()
@@ -134,41 +139,23 @@ export default function CheckoutForm({ shipping, isLoggedIn, paymentFailed = fal
     }
   }, [isLoggedIn])
 
-  // Load user profile and default address from database if logged in
+  // Saved name/phone/address come from the server (see checkout/page.tsx). Only
+  // non-empty values overwrite the form, so nothing typed or prefilled from
+  // localStorage gets wiped by blanks.
   useEffect(() => {
-    if (isLoggedIn) {
-      const supabase = createClient()
-      if (supabase) {
-        supabase.auth.getUser().then(async ({ data }) => {
-          if (data?.user) {
-            const { data: profileData } = await supabase
-              .from('customers')
-              .select('*')
-              .eq('id', data.user.id)
-              .single()
-              
-            const { data: addressData } = await supabase
-              .from('addresses')
-              .select('*')
-              .eq('user_id', data.user.id)
-              .order('is_default', { ascending: false })
-              .limit(1)
-              .maybeSingle()
-
-            setProfile({
-              fullName: profileData?.full_name || '',
-              email: data.user.email || '',
-              phone: addressData?.phone || profileData?.phone || '',
-              alternatePhone: addressData?.alternate_phone || '',
-              street: addressData?.address_line_1 || '',
-              city: addressData?.city || '',
-              state: addressData?.state || '',
-              zipCode: addressData?.postal_code || '',
-            })
-          }
-        }).catch((err) => console.error('Failed to load profile in checkout:', err))
-      }
+    if (isLoggedIn && initialProfile) {
+      setProfile((prev) => ({
+        fullName: initialProfile.fullName || prev.fullName,
+        email: initialProfile.email || prev.email,
+        phone: initialProfile.phone || prev.phone,
+        alternatePhone: initialProfile.alternatePhone || prev.alternatePhone,
+        street: initialProfile.street || prev.street,
+        city: initialProfile.city || prev.city,
+        state: initialProfile.state || prev.state,
+        zipCode: initialProfile.zipCode || prev.zipCode,
+      }))
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn])
 
   // Calculate checkout details
