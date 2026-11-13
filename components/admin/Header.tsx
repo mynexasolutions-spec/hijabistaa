@@ -2,35 +2,35 @@ import { createClient } from '@/lib/supabase/server'
 import { LogOut, User } from 'lucide-react'
 import { logout } from '@/actions/auth'
 import { cookies } from 'next/headers'
+import { getVerifiedSession } from '@/lib/session'
 
-export default async function AdminHeader() {
+export default async function AdminHeader({
+  leading,
+}: {
+  leading?: React.ReactNode
+}) {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   const cookieStore = await cookies()
-  const mockSessionCookie = cookieStore.get('hijabistaa-user-session')?.value
-  let mockUser = null
-
-  if (mockSessionCookie) {
-    try {
-      mockUser = JSON.parse(mockSessionCookie)
-    } catch (e) {}
-  }
+  const mockUser = await getVerifiedSession(cookieStore)
 
   const userEmail = user?.email || mockUser?.email || 'Admin'
 
   return (
-    <header className="h-16 bg-white border-b border-stone-200 flex items-center justify-between px-6 shrink-0">
-      <div className="flex items-center gap-4">
-        <h2 className="text-lg font-semibold text-stone-900">
-          Admin Dashboard
+    <header className="h-16 bg-white border-b border-stone-200 flex items-center justify-between gap-2 px-4 sm:px-6 shrink-0">
+      <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+        {leading}
+        <h2 className="text-base sm:text-lg font-semibold text-stone-900 truncate">
+          <span className="sm:hidden">Admin</span>
+          <span className="hidden sm:inline">Admin Dashboard</span>
         </h2>
         <a
           href="/"
           target='_blank' 
-          className="text-xs font-semibold text-[#9C5247] hover:text-white border border-[#9C5247] hover:bg-[#9C5247] px-3.5 py-1 rounded-full transition-all flex items-center gap-1 shadow-sm transition duration-200"
+          className="shrink-0 text-xs font-semibold text-[#9C5247] hover:text-white border border-[#9C5247] hover:bg-[#9C5247] px-3 sm:px-3.5 py-1 rounded-full transition-all flex items-center gap-1 shadow-sm transition duration-200"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -39,7 +39,7 @@ export default async function AdminHeader() {
         </a>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
         {/* Admin info */}
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center">

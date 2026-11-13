@@ -100,7 +100,7 @@ export type BuildOrderPayloadInput = {
   shippingState: string
   shippingPincode: string
   shippingCountry?: string
-  paymentMethod: string // 'COD' | 'Cash on Delivery' | 'Razorpay' | etc.
+  paymentMethod: string // 'COD' | 'Cash on Delivery' | 'Online Payment (PayU)' | etc.
   subtotal: number
   items: ShiprocketOrderItem[]
   weightKg: number

@@ -11,7 +11,8 @@ import Testimonials from "@/components/Testimonials";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import dynamic from 'next/dynamic';
-import { createClient } from "@/lib/supabase/server";
+import { getHomeProducts } from "@/lib/publicCatalog";
+import { getActiveCategories } from "@/actions/categories";
 import { getHeroSlides, getHeroText } from "@/actions/admin/hero";
 import { getPromoPopupSettings } from "@/actions/admin/homeBanner";
 import { getReviewCounts } from "@/actions/reviews";
@@ -21,68 +22,28 @@ import InstagramGallery from "@/components/InstagramGallery";
 const PromoPopup = dynamic(() => import('@/components/PromoPopup'));
 
 
-async function safeQuery(promise: Promise<any>, fallback: any, timeoutMs = 2500) {
-  try {
-    const res = await Promise.race([
-      promise,
-      new Promise<{ data: any }>((_, reject) =>
-        setTimeout(() => reject(new Error("Supabase query timeout")), timeoutMs)
-      ),
-    ]);
-    return res.data || fallback;
-  } catch (e) {
-    return fallback;
-  }
-}
-
 export default async function Home() {
-  const supabase = await createClient();
-
-  // Parallelize independent queries with safe timeout limits
+  // Public catalogue reads are cached (see lib/publicCatalog.ts) so page views
+  // don't each hit Supabase.
   const [
     heroSlides,
     heroText,
     categoriesData,
-    allProducts,
-    products,
-    salwarKameezProducts,
-    testimonials,
+    homeProducts,
     promoPopupSettings,
     reviewCounts
   ] = await Promise.all([
     getHeroSlides().then(slides => slides.filter((s: any) => s.is_active)),
     getHeroText(),
-    safeQuery(
-      supabase.from("categories").select("*").eq("is_active", true),
-      []
-    ),
-    safeQuery(
-      supabase.from("products").select("category_id, color_group_id").eq("is_active", true),
-      []
-    ),
-    safeQuery(
-      supabase.from("products").select(`
-        id, name, slug, category_id, is_featured, is_active, color_group_id, badge, price, oldPrice, featured_image_url,
-        product_images ( image_url ),
-        product_variants ( price, original_price )
-      `).eq("is_active", true).eq("is_featured", true).order("created_at", { ascending: false }).limit(4),
-      []
-    ),
-    safeQuery(
-      supabase.from("products").select(`
-        id, name, slug, price, oldPrice, badge, rating, featured_image_url, color_group_id,
-        product_images ( image_url ),
-        product_variants ( price, original_price )
-      `).or("category_id.eq.salwar_kameez,category_id.eq.salwar-kameez").eq("is_active", true).order("created_at", { ascending: false }).limit(4),
-      []
-    ),
-    safeQuery(
-      supabase.from("testimonials").select("*").eq("is_active", true).order("display_order", { ascending: true }),
-      undefined
-    ),
+    getActiveCategories(),
+    getHomeProducts().catch(() => ({ all: [], featured: [], salwar: [] })),
     getPromoPopupSettings(),
     getReviewCounts()
   ]);
+
+  const allProducts: any[] = homeProducts.all;
+  const products: any[] = homeProducts.featured;
+  const salwarKameezProducts: any[] = homeProducts.salwar;
 
   const productCounts = (allProducts || []).reduce((acc: any, p: any) => {
     acc[p.category_id] = (acc[p.category_id] || 0) + 1;

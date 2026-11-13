@@ -1,5 +1,6 @@
 'use server'
 
+import { isAdminUser } from '@/lib/adminAuth'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
@@ -64,7 +65,7 @@ const DEFAULT_ANNOUNCEMENT_BANNER: AnnouncementBannerConfig = {
 async function checkAdminAuth(supabase: any) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return false
-  if (user.id === 'mock-admin-id' || user.user_metadata?.role === 'admin' || user.email?.includes('admin')) {
+  if (isAdminUser(user)) {
     return true
   }
 

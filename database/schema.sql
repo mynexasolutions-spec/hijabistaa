@@ -92,6 +92,9 @@ CREATE TABLE IF NOT EXISTS orders (
   delivered_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   cancelled_at TIMESTAMP WITH TIME ZONE,
+  -- PayU integration (see database/payu_migration.sql)
+  payu_txnid TEXT,
+  payu_payment_id TEXT,
   -- Shiprocket integration (see database/shiprocket_migration.sql)
   shiprocket_order_id TEXT,
   shiprocket_shipment_id TEXT,

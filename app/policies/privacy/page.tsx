@@ -33,7 +33,7 @@ export default function PrivacyPolicy() {
           <p>We use the order information that we collect generally to fulfill any orders placed through the site (including processing your payment information, arranging for shipping, and providing you with invoices and/or order confirmations).</p>
           
           <h3 className="font-display font-semibold text-xl text-ink mt-8 mb-4">3. Sharing Your Personal Information</h3>
-          <p>We share your Personal Information with service providers to help us provide our services and fulfill our contracts with you, as described above. For example, we use Razorpay for secure payment processing.</p>
+          <p>We share your Personal Information with service providers to help us provide our services and fulfill our contracts with you, as described above. For example, we use PayU for secure payment processing.</p>
 
           <h3 className="font-display font-semibold text-xl text-ink mt-8 mb-4">4. Contact Us</h3>
           <p>

@@ -1,7 +1,8 @@
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import ShopGrid from './_components/ShopGrid'
-import { createClient } from "@/lib/supabase/server";
+import { getShopProducts } from "@/lib/publicCatalog";
+import { getActiveCategories } from "@/actions/categories";
 import { getReviewCounts } from "@/actions/reviews";
 import Image from 'next/image'
 
@@ -15,46 +16,22 @@ export default async function ShopPage({
 }: {
   searchParams: { category?: string; search?: string; featured?: string }
 }) {
-  const supabase = await createClient();
-
   const resolvedSearchParams = await searchParams;
   const searchQuery = resolvedSearchParams.search || '';
   const featuredOnly = resolvedSearchParams.featured === 'true';
 
-  let productsQuery = supabase
-    .from("products")
-    .select(`
-      id, name, slug, category_id, is_active, badge, rating, price, oldPrice, featured_image_url, color_group_id, created_at,
-      product_images ( image_url ),
-      product_variants ( price, original_price )
-    `)
-    .eq("is_active", true)
-    .order('created_at', { ascending: false });
-
-  if (searchQuery) {
-    productsQuery = productsQuery.or(`name.ilike.%${searchQuery}%,category_id.ilike.%${searchQuery}%`);
-  }
-
-  if (featuredOnly) {
-    productsQuery = productsQuery.eq('is_featured', true);
-  }
-
-  const [{ data: productsData }, reviewCounts] = await Promise.all([
-    productsQuery,
-    getReviewCounts()
+  const [productsData, reviewCounts, categoriesData] = await Promise.all([
+    getShopProducts(searchQuery, featuredOnly),
+    getReviewCounts(),
+    getActiveCategories(),
   ]);
-
-  const { data: categoriesData } = await supabase
-    .from("categories")
-    .select("*")
-    .eq("is_active", true);
 
   const colorGroupCounts = (productsData || []).reduce((acc: any, p: any) => {
     if (p.color_group_id) acc[p.color_group_id] = (acc[p.color_group_id] || 0) + 1;
     return acc;
   }, {});
 
-  const products = (productsData || []).map((p: any) => ({
+  const products: any[] = (productsData || []).map((p: any) => ({
     id: p.id,
     name: p.name,
     slug: p.slug,

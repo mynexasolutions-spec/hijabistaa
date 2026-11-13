@@ -22,8 +22,9 @@ import {
   Gift,
   Mail,
   Instagram,
+  X,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const navItems = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -44,29 +45,60 @@ const navItems = [
   { label: 'Manage Profile', href: '/admin/settings/profile', icon: User },
 ]
 
-export default function AdminSidebar() {
+export default function AdminSidebar({
+  mobileOpen,
+  onClose,
+}: {
+  mobileOpen: boolean
+  onClose: () => void
+}) {
   const pathname = usePathname()
+  // Collapsing only applies on desktop; the mobile drawer always shows labels
   const [collapsed, setCollapsed] = useState(false)
 
+  useEffect(() => {
+    onClose()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname])
+
+  const hideWhenCollapsed = collapsed ? 'md:hidden' : ''
+
   return (
+    <>
+      {/* Mobile backdrop */}
+      <div
+        onClick={onClose}
+        aria-hidden="true"
+        className={`fixed inset-0 z-40 bg-black/40 md:hidden transition-opacity duration-300 ${
+          mobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+      />
     <aside
       className={`${
         collapsed ? 'w-[72px]' : 'w-64'
-      } bg-cream border-r border-cream-line flex flex-col shrink-0 transition-all duration-300 ease-in-out`}
+      } bg-cream border-r border-cream-line flex flex-col shrink-0 transition-all duration-300 ease-in-out max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 max-md:w-64 max-md:max-w-[85vw] ${
+        mobileOpen ? 'max-md:translate-x-0' : 'max-md:-translate-x-full'
+      }`}
     >
       {/* Brand */}
       <div className="h-16 flex items-center px-4 border-b border-cream-line gap-3">
         <div className="w-9 h-9 bg-gradient-to-br from-emerald to-emerald-deep rounded-lg flex items-center justify-center shrink-0 shadow-lg shadow-emerald/20">
           <span className="text-white font-bold text-sm">H</span>
         </div>
-        {!collapsed && (
-          <div className="overflow-hidden">
-            <p className="text-ink font-semibold text-sm leading-tight truncate">
-              HIJABISTAA
-            </p>
-            <p className="text-ink/50 text-xs truncate">Admin Panel</p>
-          </div>
-        )}
+        <div className={`overflow-hidden flex-1 ${hideWhenCollapsed}`}>
+          <p className="text-ink font-semibold text-sm leading-tight truncate">
+            HIJABISTAA
+          </p>
+          <p className="text-ink/50 text-xs truncate">Admin Panel</p>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close menu"
+          className="md:hidden p-2 -mr-2 rounded-lg text-ink/60 hover:bg-cream-deep/60"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Navigation */}
@@ -96,14 +128,14 @@ export default function AdminSidebar() {
                     : 'text-ink/40 group-hover:text-[#9C5247]'
                 }`}
               />
-              {!collapsed && <span className="truncate">{item.label}</span>}
+              <span className={`truncate ${hideWhenCollapsed}`}>{item.label}</span>
             </Link>
           )
         })}
       </nav>
 
-      {/* Collapse toggle */}
-      <div className="p-3 border-t border-cream-line">
+      {/* Collapse toggle (desktop only) */}
+      <div className="p-3 border-t border-cream-line hidden md:block">
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-ink/50 hover:text-emerald hover:bg-cream-deep/60 transition-all duration-200 text-sm"
@@ -119,5 +151,6 @@ export default function AdminSidebar() {
         </button>
       </div>
     </aside>
+    </>
   )
 }

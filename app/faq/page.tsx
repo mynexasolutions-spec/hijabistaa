@@ -21,7 +21,7 @@ const fallbackFaqs = [
   },
   {
     question: "What payment methods are available?",
-    answer: "We currently accept all major credit/debit cards, UPI, and Netbanking via Razorpay. We do not offer Cash on Delivery (COD)."
+    answer: "We currently accept all major credit/debit cards, UPI, and Netbanking via PayU. We do not offer Cash on Delivery (COD)."
   },
   {
     question: "How can I track my order?",

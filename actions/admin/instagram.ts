@@ -1,7 +1,8 @@
 'use server'
 
+import { isAdminUser } from '@/lib/adminAuth'
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, updateTag } from 'next/cache'
 import { InstagramPost } from '../instagram'
 
 const DEFAULT_INSTAGRAM_LINK = 'https://www.instagram.com/__hijabistaa__'
@@ -9,7 +10,7 @@ const DEFAULT_INSTAGRAM_LINK = 'https://www.instagram.com/__hijabistaa__'
 async function checkAdminAuth(supabase: any) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return false
-  if (user.id === 'mock-admin-id' || user.user_metadata?.role === 'admin' || user.email?.includes('admin')) {
+  if (isAdminUser(user)) {
     return true
   }
 
@@ -118,6 +119,7 @@ export async function addInstagramPost(data: Partial<InstagramPost>) {
 
   revalidatePath('/', 'layout')
   revalidatePath('/admin/instagram')
+  updateTag('instagram-posts')
   return { success: true }
 }
 
@@ -145,6 +147,7 @@ export async function updateInstagramPost(id: string, data: Partial<InstagramPos
 
   revalidatePath('/', 'layout')
   revalidatePath('/admin/instagram')
+  updateTag('instagram-posts')
   return { success: true }
 }
 
@@ -169,6 +172,7 @@ export async function deleteInstagramPost(id: string) {
 
   revalidatePath('/', 'layout')
   revalidatePath('/admin/instagram')
+  updateTag('instagram-posts')
   return { success: true }
 }
 

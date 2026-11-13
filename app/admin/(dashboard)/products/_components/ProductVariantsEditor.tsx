@@ -397,7 +397,7 @@ export function ProductVariantsEditor({
       )}
 
       {variants.length > 0 ? (
-        <div className="overflow-hidden bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-xl">
+        <div className="overflow-x-auto bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-xl">
           <table className="min-w-full divide-y divide-gray-300">
             <thead className="bg-gray-50">
               <tr>

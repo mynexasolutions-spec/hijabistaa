@@ -1,7 +1,9 @@
 'use server'
 
+import { isAdminUser } from '@/lib/adminAuth'
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, unstable_cache, updateTag } from 'next/cache'
+import { createPublicClient } from '@/lib/supabase/public'
 
 export type DiscoverItem = {
   id: string
@@ -41,7 +43,7 @@ const DEFAULT_DISCOVER_ITEMS: DiscoverItem[] = [
 async function checkAdminAuth(supabase: any) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return true // Allow admin dashboard session
-  if (user.id === 'mock-admin-id' || user.user_metadata?.role === 'admin' || user.email?.includes('admin')) {
+  if (isAdminUser(user)) {
     return true
   }
 
@@ -81,6 +83,22 @@ async function writeLocalDb(data: any): Promise<void> {
   }
 }
 
+// This runs for every page view (the Header calls it), so it must not hit
+// Supabase each time. Cached for an hour and purged by the mutations below.
+const fetchMegaMenuRows = unstable_cache(
+  async (): Promise<DiscoverItem[]> => {
+    const supabase = createPublicClient()
+    if (!supabase) return []
+    const { data } = await supabase
+      .from('mega_menu_discover')
+      .select('*')
+      .order('display_order', { ascending: true })
+    return (data as DiscoverItem[]) || []
+  },
+  ['mega-menu-discover'],
+  { revalidate: 3600, tags: ['mega-menu-discover'] }
+)
+
 export async function getMegaMenuDiscoverItems(): Promise<DiscoverItem[]> {
   let items: DiscoverItem[] = []
 
@@ -92,13 +110,9 @@ export async function getMegaMenuDiscoverItems(): Promise<DiscoverItem[]> {
     items = [...DEFAULT_DISCOVER_ITEMS]
   }
 
-  // 2. Read from Supabase and merge
+  // 2. Read from Supabase (cached) and merge
   try {
-    const supabase = await createClient()
-    const { data } = await supabase
-      .from('mega_menu_discover')
-      .select('*')
-      .order('display_order', { ascending: true })
+    const data = await fetchMegaMenuRows()
 
     if (data && data.length > 0) {
       const map = new Map<string, DiscoverItem>()
@@ -171,6 +185,7 @@ export async function createDiscoverItem(formData: FormData) {
 
   revalidatePath('/', 'layout')
   revalidatePath('/admin/categories')
+  updateTag('mega-menu-discover')
   return { success: true, item: newItem }
 }
 
@@ -218,6 +233,7 @@ export async function updateDiscoverItem(id: string, formData: FormData) {
 
   revalidatePath('/', 'layout')
   revalidatePath('/admin/categories')
+  updateTag('mega-menu-discover')
   return { success: true, updated: updatedFields }
 }
 
@@ -248,6 +264,7 @@ export async function toggleDiscoverItemStatus(id: string, isActive: boolean) {
 
   revalidatePath('/', 'layout')
   revalidatePath('/admin/categories')
+  updateTag('mega-menu-discover')
   return { success: true }
 }
 
@@ -275,5 +292,6 @@ export async function deleteDiscoverItem(id: string) {
 
   revalidatePath('/', 'layout')
   revalidatePath('/admin/categories')
+  updateTag('mega-menu-discover')
   return { success: true }
 }

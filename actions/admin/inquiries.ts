@@ -1,12 +1,13 @@
 'use server'
 
+import { isAdminUser } from '@/lib/adminAuth'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 async function checkAdminAuth(supabase: any) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return false
-  if (user.id === 'mock-admin-id' || user.user_metadata?.role === 'admin' || user.email?.includes('admin')) {
+  if (isAdminUser(user)) {
     return true
   }
 

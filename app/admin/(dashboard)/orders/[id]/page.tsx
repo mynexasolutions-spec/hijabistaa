@@ -274,16 +274,16 @@ export default async function AdminOrderDetailsPage({
               <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-2">Payment Method</p>
               <p className="text-sm font-medium text-stone-900">{order.payment_method}</p>
 
-              {order.razorpay_order_id && (
+              {order.payu_txnid && (
                 <div className="mt-3">
-                  <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1">Razorpay Order ID</p>
-                  <p className="text-xs font-mono text-stone-900 bg-stone-50 p-2 rounded border border-stone-100">{order.razorpay_order_id}</p>
+                  <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1">{(order.payment_method?.match(/\(([^)]+)\)/)?.[1] || '') + ' '}Transaction ID</p>
+                  <p className="text-xs font-mono text-stone-900 bg-stone-50 p-2 rounded border border-stone-100">{order.payu_txnid}</p>
                 </div>
               )}
-              {order.razorpay_payment_id && (
+              {order.payu_payment_id && (
                 <div className="mt-3">
-                  <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1">Razorpay Payment ID</p>
-                  <p className="text-xs font-mono text-stone-900 bg-stone-50 p-2 rounded border border-stone-100">{order.razorpay_payment_id}</p>
+                  <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1">{(order.payment_method?.match(/\(([^)]+)\)/)?.[1] || '') + ' '}Payment ID</p>
+                  <p className="text-xs font-mono text-stone-900 bg-stone-50 p-2 rounded border border-stone-100">{order.payu_payment_id}</p>
                 </div>
               )}
             </div>

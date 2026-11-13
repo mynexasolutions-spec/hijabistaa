@@ -581,11 +581,11 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                   {order.payment_status || 'Pending'}
                 </span>
               </div>
-              {order.razorpay_payment_id && (
+              {order.payu_payment_id && (
                 <div className="mt-4 pt-4 border-t border-cream-line/50">
-                  <p className="text-xs font-bold uppercase tracking-wider text-ink/40 mb-1.5">Payment ID</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-ink/40 mb-1.5">{(order.payment_method?.match(/\(([^)]+)\)/)?.[1] || '') + ' '}Payment ID</p>
                   <p className="font-mono text-sm text-ink/80 select-all bg-cream/40 border border-cream-line/50 rounded-lg px-3 py-2 inline-block">
-                    {order.razorpay_payment_id}
+                    {order.payu_payment_id}
                   </p>
                 </div>
               )}

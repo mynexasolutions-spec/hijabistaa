@@ -1,7 +1,8 @@
 'use server'
 
+import { isAdminUser } from '@/lib/adminAuth'
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, updateTag } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 export type ActionResult = {
@@ -122,6 +123,7 @@ export async function createProduct(
 
   revalidatePath('/admin/products')
   revalidatePath('/shop')
+  updateTag('products')
   redirect(`/admin/products/${product.id}/edit`)
 }
 
@@ -236,7 +238,9 @@ export async function updateProduct(
 
   revalidatePath('/admin/products')
   revalidatePath(`/shop/${id}`)
+  updateTag('products')
   revalidatePath('/shop')
+  updateTag('products')
   redirect('/admin/products')
 }
 
@@ -259,7 +263,7 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
 async function checkAdminAuth(supabase: any) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return false
-  if (user.id === 'mock-admin-id' || user.user_metadata?.role === 'admin' || user.email?.includes('admin')) {
+  if (isAdminUser(user)) {
     return true
   }
 
@@ -510,6 +514,7 @@ export async function createProductVariant(
 
   revalidatePath(`/admin/products/${productId}/edit`)
   revalidatePath(`/shop/${productId}`)
+  updateTag('products')
   return { success: true }
 }
 
@@ -563,6 +568,7 @@ export async function bulkCreateProductVariants(
 
   revalidatePath(`/admin/products/${productId}/edit`)
   revalidatePath(`/shop/${productId}`)
+  updateTag('products')
   return { success: true }
 }
 
@@ -627,6 +633,7 @@ export async function updateProductVariant(
 
   revalidatePath(`/admin/products/${productId}/edit`)
   revalidatePath(`/shop/${productId}`)
+  updateTag('products')
   return { success: true }
 }
 
@@ -659,6 +666,7 @@ export async function deleteProductVariant(
 
   revalidatePath(`/admin/products/${productId}/edit`)
   revalidatePath(`/shop/${productId}`)
+  updateTag('products')
   return { success: true }
 }
 
@@ -772,6 +780,7 @@ export async function saveProductColors(
 
   revalidatePath(`/admin/products/${productId}/edit`)
   revalidatePath(`/shop/${productId}`)
+  updateTag('products')
   return { success: true }
 }
 
@@ -836,6 +845,7 @@ export async function toggleImageColorMapping(
 
   revalidatePath(`/admin/products/${productId}/edit`)
   revalidatePath(`/shop/${productId}`)
+  updateTag('products')
   return { success: true }
 }
 
@@ -906,5 +916,6 @@ export async function saveProductDesigns(
 
   revalidatePath(`/admin/products/${productId}/edit`)
   revalidatePath(`/shop/${productId}`)
+  updateTag('products')
   return { success: true }
 }

@@ -8,7 +8,12 @@ export const metadata = {
   title: 'Secure Checkout | HIJABISTA',
 }
 
-export default async function CheckoutPage() {
+export default async function CheckoutPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ payment?: string }>
+}) {
+  const { payment } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -19,7 +24,7 @@ export default async function CheckoutPage() {
       <Header />
       <main className="min-h-screen bg-cream pt-28 pb-16 md:pt-36 md:pb-24">
         <div className="max-w-wrap mx-auto px-5 md:px-8">
-          <CheckoutForm shipping={shipping} isLoggedIn={!!user} />
+          <CheckoutForm shipping={shipping} isLoggedIn={!!user} paymentFailed={payment === 'failed'} />
         </div>
       </main>
       <Footer />

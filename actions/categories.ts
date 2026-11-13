@@ -1,7 +1,9 @@
 'use server'
 
+import { isAdminUser } from '@/lib/adminAuth'
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, unstable_cache, updateTag } from 'next/cache'
+import { createPublicClient } from '@/lib/supabase/public'
 import { redirect } from 'next/navigation'
 
 export type ActionResult = {
@@ -12,7 +14,7 @@ export type ActionResult = {
 async function checkAdminAuth(supabase: any) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return false
-  if (user.id === 'mock-admin-id' || user.user_metadata?.role === 'admin' || user.email?.includes('admin')) {
+  if (isAdminUser(user)) {
     return true
   }
 
@@ -26,6 +28,26 @@ async function checkAdminAuth(supabase: any) {
     return profile?.role === 'admin'
   } catch (e) {
     return false
+  }
+}
+
+// Header runs this on every page view for every visitor; cache it.
+const fetchActiveCategories = unstable_cache(
+  async () => {
+    const supabase = createPublicClient()
+    if (!supabase) return []
+    const { data } = await supabase.from('categories').select('*').eq('is_active', true)
+    return data || []
+  },
+  ['active-categories'],
+  { revalidate: 3600, tags: ['categories'] }
+)
+
+export async function getActiveCategories() {
+  try {
+    return await fetchActiveCategories()
+  } catch (e) {
+    return []
   }
 }
 
@@ -80,6 +102,7 @@ export async function createCategory(
   }
 
   revalidatePath('/admin/categories')
+  updateTag('categories')
   redirect('/admin/categories')
 }
 
@@ -127,6 +150,7 @@ export async function updateCategory(
   }
 
   revalidatePath('/admin/categories')
+  updateTag('categories')
   redirect('/admin/categories')
 }
 
@@ -145,6 +169,7 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
   }
 
   revalidatePath('/admin/categories')
+  updateTag('categories')
   return { success: true }
 }
 
@@ -169,5 +194,6 @@ export async function toggleCategoryStatus(
   }
 
   revalidatePath('/admin/categories')
+  updateTag('categories')
   return { success: true }
 }

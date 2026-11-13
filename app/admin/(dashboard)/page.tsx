@@ -22,7 +22,8 @@ async function getStats() {
       await Promise.all([
         supabase
           .from('orders')
-          .select('id, total_amount, payment_status, payment_method'),
+          .select('id, total_amount, payment_status, payment_method')
+          .neq('order_status', 'cancelled'),
         supabase
           .from('customers')
           .select('*', { count: 'exact', head: true }),
@@ -32,8 +33,10 @@ async function getStats() {
         supabase
           .from('orders')
           .select('id, order_number, total_amount, order_status, payment_status, payment_method, created_at')
+          .or('payment_method.in.(COD,"Cash on Delivery"),payment_status.eq.paid')
+          .neq('order_status', 'cancelled')
           .order('created_at', { ascending: false })
-          .limit(20),
+          .limit(5),
       ])
 
     const ordersData = ordersRes?.data || []
@@ -52,13 +55,7 @@ async function getStats() {
     const totalCustomers = customersRes?.count || 0
     const totalProducts = productsRes?.count || 0
 
-    const rawRecentOrders = recentOrdersRes?.data || []
-    const recentOrders = rawRecentOrders.filter((order: any) => {
-      if (order.payment_method === 'COD' || order.payment_method === 'Cash on Delivery') {
-        return true
-      }
-      return order.payment_status === 'paid'
-    }).slice(0, 5)
+    const recentOrders = recentOrdersRes?.data || []
 
     return { totalOrders, totalRevenue, totalCustomers, totalProducts, recentOrders }
   } catch (error) {

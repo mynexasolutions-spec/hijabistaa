@@ -37,7 +37,7 @@ export default function TermsConditions() {
 
           <h3 className="font-display font-semibold text-xl text-ink mt-8 mb-4">4. Payment Terms</h3>
           <p>
-            We use Razorpay as our primary payment gateway. By making a purchase, you agree to Razorpay's terms of service regarding payment processing. Prices for our products are subject to change without notice.
+            We use PayU as our primary payment gateway. By making a purchase, you agree to PayU's terms of service regarding payment processing. Prices for our products are subject to change without notice.
           </p>
         </div>
       </div>

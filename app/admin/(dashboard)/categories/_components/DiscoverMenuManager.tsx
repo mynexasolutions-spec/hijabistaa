@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Plus, Trash2, Edit2, Check, X, Image as ImageIcon, Loader2, UploadCloud } from 'lucide-react'
 import { createDiscoverItem, updateDiscoverItem, deleteDiscoverItem, toggleDiscoverItemStatus, getMegaMenuDiscoverItems } from '@/actions/admin/megaMenuDiscover'
 import Image from 'next/image'
+import { uploadImageToCloudinary } from '@/lib/cloudinaryUpload'
 
 export default function DiscoverMenuManager({ initialItems }: { initialItems: any[] }) {
   const [items, setItems] = useState(initialItems)
@@ -51,17 +52,20 @@ export default function DiscoverMenuManager({ initialItems }: { initialItems: an
     setError(null)
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setImageUrl(event.target.result as string)
-      }
+    setLoading(true)
+    setError(null)
+    try {
+      setImageUrl(await uploadImageToCloudinary(file, 'hijabistaa/mega-menu'))
+    } catch (err: any) {
+      setError(err?.message || 'Upload failed.')
+    } finally {
+      setLoading(false)
+      e.target.value = ''
     }
-    reader.readAsDataURL(file)
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

@@ -2,27 +2,11 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import Razorpay from 'razorpay'
 import crypto from 'crypto'
 import { calculateShippingCharge } from '@/lib/shipping'
-import { sendOrderConfirmationEmail } from '@/lib/email'
+import { getPayuConfig, buildRequestHash, formatPayuAmount, getSiteUrl } from '@/lib/payu'
 
-
-// Initialize Razorpay
-// We wrap this in a try-catch or check to avoid crashing if keys are missing
-let razorpayInstance: any = null
-try {
-  if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
-    razorpayInstance = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
-    })
-  }
-} catch (e) {
-  console.warn("Razorpay credentials missing or invalid")
-}
-
-export async function createOrder(addressId: string, paymentMethod: string, cartItemsFromFrontend: any[]) {
+export async function createOrder(addressId: string, paymentMethod: string, cartItemsFromFrontend: any[], couponCode?: string) {
   const supabase = await createClient()
 
   // 1. Get user
@@ -51,21 +35,100 @@ export async function createOrder(addressId: string, paymentMethod: string, cart
     return { success: false, error: 'Your cart is empty in the database.' }
   }
 
-  // 4. Calculate totals securely (Using frontend data for mock compatibility)
+  // 4. Calculate totals. The browser only tells us WHICH products/sizes/
+  // quantities are in the cart — prices, names and the quantity limits are
+  // re-checked against the database so they can't be tampered with.
+  if (cartItemsFromFrontend.length > 50) {
+    return { success: false, error: 'Too many items in cart.' }
+  }
+
+  const productIds = Array.from(new Set(cartItemsFromFrontend.map((i: any) => String(i?.id ?? '')).filter(Boolean)))
+  const { data: dbProducts } = await admin
+    .from('products')
+    .select('id, name, price, is_active')
+    .in('id', productIds)
+  const { data: dbVariants } = await admin
+    .from('product_variants')
+    .select('product_id, variant_name, price')
+    .in('product_id', productIds)
+
+  const productsById = new Map<string, any>((dbProducts || []).map((p: any) => [p.id, p]))
+  const variantsByProduct = new Map<string, any[]>()
+  for (const v of dbVariants || []) {
+    const list = variantsByProduct.get(v.product_id) || []
+    list.push(v)
+    variantsByProduct.set(v.product_id, list)
+  }
+
+  // The product page also falls back to variants stored in lib/db.json when
+  // the DB has none for a product — mirror that so prices still agree.
+  let localVariants: any[] | null = null
+  const getLocalVariants = async (productId: string) => {
+    if (localVariants === null) {
+      localVariants = []
+      try {
+        const fs = await import('fs')
+        const path = await import('path')
+        const dbPath = path.join(process.cwd(), 'lib', 'db.json')
+        if (fs.existsSync(dbPath)) {
+          const json = JSON.parse(fs.readFileSync(dbPath, 'utf8'))
+          if (Array.isArray(json.product_variants)) localVariants = json.product_variants
+        }
+      } catch (e) { }
+    }
+    return (localVariants || []).filter((v: any) => v.product_id === productId)
+  }
+
   let subtotal = 0
   const orderItems = []
 
   for (const item of cartItemsFromFrontend) {
-    const price = Number(item.price)
-    const quantity = Number(item.quantity)
-    const lineTotal = price * quantity
+    const product = productsById.get(String(item?.id ?? ''))
+    if (!product || product.is_active === false) {
+      return { success: false, error: `"${item?.name || 'An item'}" is no longer available. Please remove it from your cart.` }
+    }
 
+    const quantity = Number(item.quantity)
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
+      return { success: false, error: 'Invalid item quantity.' }
+    }
+
+    let variants = variantsByProduct.get(product.id) || []
+    if (variants.length === 0) variants = await getLocalVariants(product.id)
+
+    const productPrice = Number(product.price) > 0 ? Number(product.price) : 0
+    const variantPrices = variants.map((v: any) => Number(v.price)).filter((n: number) => n > 0)
+    const allowedPrices = new Set<number>([productPrice, ...variantPrices].filter((n) => n > 0))
+
+    // Same rule the product page uses: the chosen size's variant price if it
+    // has one, otherwise the product's base price.
+    const sizeName = String(item.variant_name || '').trim().toLowerCase()
+    const matchedVariant = sizeName
+      ? variants.find((v: any) => String(v.variant_name || '').trim().toLowerCase() === sizeName && Number(v.price) > 0)
+      : null
+
+    let price: number
+    if (matchedVariant) {
+      price = Number(matchedVariant.price)
+    } else if (allowedPrices.has(Number(item.price))) {
+      // e.g. "Add to cart" from a listing card (no size chosen) — the card
+      // shows a real price of this product; accept it only if it is one.
+      price = Number(item.price)
+    } else {
+      price = productPrice || variantPrices[0] || 0
+    }
+
+    if (!(price > 0)) {
+      return { success: false, error: `"${product.name}" can't be purchased right now.` }
+    }
+
+    const lineTotal = price * quantity
     subtotal += lineTotal
 
     orderItems.push({
-      product_id: item.id,
+      product_id: product.id,
       variant_id: item.variant_id || item.id,
-      product_name: item.name,
+      product_name: product.name,
       variant_name: item.variant_name || 'Default',
       color_name: item.color_name || null,
       size: item.variant_name || null,
@@ -97,15 +160,50 @@ export async function createOrder(addressId: string, paymentMethod: string, cart
   const onlineDiscountPercent = Number(shippingSettings.online_discount ?? 0)
 
   const cod_cost = 0 // COD is removed
-  const online_discount_amount = paymentMethod === 'RAZORPAY'
+  const online_discount_amount = paymentMethod === 'PAYU'
     ? Math.round((subtotal * onlineDiscountPercent) / 100)
     : 0
-  const total_amount = subtotal + shipping_cost + cod_cost - online_discount_amount
+
+  // Coupon: validated here against the DB (never trust a discount amount sent
+  // by the browser). Same rules as the checkout page / validateCoupon().
+  let coupon_discount = 0
+  if (couponCode && String(couponCode).trim()) {
+    const { data: coupon } = await admin
+      .from('coupons')
+      .select('type, value, min_purchase, is_active')
+      .eq('code', String(couponCode).toUpperCase().trim())
+      .eq('is_active', true)
+      .maybeSingle()
+
+    if (!coupon) return { success: false, error: 'This coupon is no longer valid.' }
+    if (subtotal < Number(coupon.min_purchase || 0)) {
+      return { success: false, error: `Minimum purchase of ₹${coupon.min_purchase} required to use this coupon.` }
+    }
+    coupon_discount = coupon.type === 'percentage'
+      ? Math.round((subtotal * Number(coupon.value)) / 100)
+      : Number(coupon.value)
+  }
+
+  const total_amount = Math.max(0, subtotal + shipping_cost + cod_cost - online_discount_amount - coupon_discount)
+  if (!(total_amount > 0)) {
+    return { success: false, error: 'Order total must be greater than zero.' }
+  }
 
   // Generate order number
   const order_number = `AM-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
 
-  const actualPaymentMethod = 'Online Payment (Razorpay)'
+  const actualPaymentMethod = 'Online Payment (PayU)'
+
+  // Fail before creating anything if the gateway isn't configured.
+  const payuConfig = paymentMethod === 'PAYU' ? getPayuConfig() : null
+  if (paymentMethod === 'PAYU' && !payuConfig) {
+    return { success: false, error: 'PayU is not configured on the server.' }
+  }
+
+  // PayU transaction ids must be unique per attempt, alphanumeric, <= 25 chars.
+  const payuTxnId = paymentMethod === 'PAYU'
+    ? `HJ${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`.toUpperCase()
+    : null
 
   // 5. Insert Order
   const { data: order, error: orderError } = await admin
@@ -120,7 +218,8 @@ export async function createOrder(addressId: string, paymentMethod: string, cart
       total_amount,
       payment_status: 'pending',
       order_status: 'pending',
-      payment_method: actualPaymentMethod
+      payment_method: actualPaymentMethod,
+      ...(payuTxnId ? { payu_txnid: payuTxnId } : {}),
     }])
     .select('id, order_number')
     .single()
@@ -147,41 +246,59 @@ export async function createOrder(addressId: string, paymentMethod: string, cart
   }
 
   // 7. Handle Payment Method Specific Logic
-  if (paymentMethod === 'RAZORPAY') {
-    if (!razorpayInstance) {
-      return { success: false, error: 'Razorpay is not configured on the server.' }
-    }
-
+  if (paymentMethod === 'PAYU' && payuConfig && payuTxnId) {
     try {
-      // Create Razorpay Order
-      // amount is in paise (multiply by 100)
-      const options = {
-        amount: Math.round(total_amount * 100),
-        currency: 'INR',
-        receipt: order.id,
-        payment_capture: 1,
-        // Razorpay echoes notes back on every payment/order webhook payload.
-        // The webhook handler needs this to resolve our internal order id —
-        // `payment.receipt` doesn't exist on payment entities (only on
-        // orders), so without notes it had no reliable way to match a
-        // payment.captured event back to an order.
-        notes: {
-          internal_order_id: order.id,
-        },
-      }
-      
-      const rzpOrder = await razorpayInstance.orders.create(options)
+      const { data: addr } = await admin
+        .from('addresses')
+        .select('full_name, phone')
+        .eq('id', addressId)
+        .maybeSingle()
 
-      return { 
-        success: true, 
-        isRazorpay: true, 
-        razorpayOrderId: rzpOrder.id,
+      let email = user.email || ''
+      if (!email) {
+        const { data: customer } = await admin.from('customers').select('email').eq('id', user.id).maybeSingle()
+        email = customer?.email || ''
+      }
+
+      // PayU rejects names with special characters; the hash must use the
+      // exact same sanitised value that is posted.
+      const firstname = (addr?.full_name || 'Customer').replace(/[^A-Za-z0-9 ]/g, '').trim().slice(0, 60) || 'Customer'
+      const phone = (addr?.phone || '').replace(/\D/g, '').slice(-10)
+      const amount = formatPayuAmount(total_amount)
+      const productinfo = `Order ${order.order_number}`
+
+      const base = await getSiteUrl()
+      const returnUrl = `${base}/api/payu/callback`
+
+      const fields: Record<string, string> = {
+        key: payuConfig.key,
+        txnid: payuTxnId,
+        amount,
+        productinfo,
+        firstname,
+        email,
+        phone,
+        surl: returnUrl,
+        furl: returnUrl,
+        curl: returnUrl,
+        // Our internal order id travels with the transaction and comes back
+        // (signed) on both the browser return and the webhook.
+        udf1: order.id,
+      }
+      fields.hash = buildRequestHash(payuConfig, {
+        txnid: payuTxnId, amount, productinfo, firstname, email, udf1: order.id,
+      })
+
+      return {
+        success: true,
+        isPayu: true,
+        payuUrl: payuConfig.paymentUrl,
+        payuFields: fields,
         orderId: order.id,
         orderNumber: order.order_number,
-        amount: options.amount
       }
     } catch (err: any) {
-      console.error('Razorpay Error:', err)
+      console.error('PayU Error:', err)
       return { success: false, error: 'Failed to initialize payment gateway.' }
     }
   }
@@ -210,119 +327,14 @@ export async function createOrder(addressId: string, paymentMethod: string, cart
   revalidatePath('/checkout')
   revalidatePath('/profile')
 
-  return { success: true, isRazorpay: false, order_number: order.order_number, orderId: order.id }
-}
-
-export async function verifyRazorpayPayment(
-  razorpay_payment_id: string,
-  razorpay_order_id: string,
-  razorpay_signature: string,
-  internal_order_id: string
-) {
-  // We MUST use the Admin client here to securely bypass RLS
-  // because users should NOT have UPDATE permissions on their orders directly.
-  const { createAdminClient } = await import('@/lib/supabase/admin')
-  const supabase = createAdminClient()
-  const userSupabase = await createClient()
-
-  // 1. Get user securely via regular client to confirm they are logged in
-  const { data: { user } } = await userSupabase.auth.getUser()
-  if (!user) return { success: false, error: 'Unauthorized' }
-
-  // 2. Verify signature
-  const secret = process.env.RAZORPAY_KEY_SECRET
-  if (!secret) return { success: false, error: 'Razorpay secret not configured' }
-
-  const generated_signature = crypto
-    .createHmac('sha256', secret)
-    .update(razorpay_order_id + '|' + razorpay_payment_id)
-    .digest('hex')
-
-  if (generated_signature !== razorpay_signature) {
-    return { success: false, error: 'Payment verification failed: Invalid signature' }
-  }
-
-  // 3. Update Order Status
-  const { error: updateError } = await supabase
-    .from('orders')
-    .update({
-      payment_status: 'paid',
-      paid_at: new Date().toISOString(),
-      razorpay_order_id,
-      razorpay_payment_id
-    })
-    .eq('id', internal_order_id)
-    .eq('user_id', user.id)
-
-  if (updateError) {
-    console.error('Failed to update order status:', updateError)
-    return { success: false, error: 'Failed to update order status' }
-  }
-
-  // 4. Get order items to decrement stock
-  const { data: orderItems } = await supabase
-    .from('order_items')
-    .select('variant_id, quantity')
-    .eq('order_id', internal_order_id)
-
-  if (orderItems) {
-    for (const item of orderItems) {
-      if (!item.variant_id) continue
-      const { data: variant } = await supabase.from('product_variants').select('stock_quantity').eq('id', item.variant_id).single()
-      if (variant) {
-        await supabase.from('product_variants').update({
-          stock_quantity: Math.max(0, variant.stock_quantity - item.quantity)
-        }).eq('id', item.variant_id)
-      }
-    }
-  }
-
-  // 5. Clear Cart
-  await supabase
-    .from('cart_items')
-    .delete()
-    .eq('user_id', user.id)
-
-  // 6. Send order confirmation email — best-effort, never blocks checkout
-  // success if it fails (missing API key, Brevo error, etc.)
-  try {
-    const { data: fullOrder } = await supabase
-      .from('orders')
-      .select(`
-        *,
-        addresses:address_id (*),
-        order_items (*)
-      `)
-      .eq('id', internal_order_id)
-      .maybeSingle()
-
-    if (fullOrder && user.email) {
-      await sendOrderConfirmationEmail({
-        toEmail: user.email,
-        customerName: fullOrder.addresses?.full_name || 'Customer',
-        orderNumber: fullOrder.order_number,
-        items: fullOrder.order_items || [],
-        subtotal: fullOrder.subtotal,
-        shippingCost: fullOrder.shipping_cost,
-        totalAmount: fullOrder.total_amount,
-        address: fullOrder.addresses || null,
-      })
-    }
-  } catch (e) {
-    console.error('Failed to send order confirmation email:', e)
-  }
-
-  revalidatePath('/cart')
-  revalidatePath('/checkout')
-  revalidatePath('/profile')
-
-  return { success: true }
+  return { success: true, isPayu: false, order_number: order.order_number, orderId: order.id }
 }
 
 export async function processCheckout(
   profile: { fullName: string, email: string, phone: string, alternatePhone?: string, street: string, city: string, state: string, zipCode: string },
   items: any[],
-  paymentMethod: 'RAZORPAY' | 'COD' | string
+  paymentMethod: 'PAYU' | 'COD' | string,
+  couponCode?: string
 ) {
   const supabase = await createClient()
   let { data: { user } } = await supabase.auth.getUser()
@@ -445,64 +457,5 @@ export async function processCheckout(
   }
 
   // 3. Call createOrder (pass items from memory to avoid join errors)
-  return await createOrder(addressId, paymentMethod, items)
+  return await createOrder(addressId, paymentMethod, items, couponCode)
 }
-
-export async function cancelPendingOrder(orderId: string, razorpayOrderId?: string) {
-  if (!orderId) return
-  try {
-    const { createAdminClient } = await import('@/lib/supabase/admin')
-    const supabaseAdmin = createAdminClient()
-
-    const { data: order } = await supabaseAdmin
-      .from('orders')
-      .select('id, payment_status, razorpay_order_id')
-      .eq('id', orderId)
-      .maybeSingle()
-
-    // Already resolved (paid, or cancelled by an earlier call) — nothing to do.
-    if (!order || order.payment_status !== 'pending') return
-
-    // Razorpay's modal `ondismiss` only means "the modal closed" — for a UPI
-    // intent payment it fires the moment the browser switches to the UPI
-    // app, well before we know whether the payment actually went through.
-    // Don't guess from our own DB timing (that's what raced and lost items
-    // before); ask Razorpay directly, since its order status is the source
-    // of truth on whether money actually moved. `orders.razorpay_order_id`
-    // isn't written to the DB until payment is verified, so at this point
-    // it's normally still null — take it from the caller (the browser has
-    // it from the moment the Razorpay order was created) and fall back to
-    // the DB value in case it's already been backfilled.
-    const rzpOrderId = razorpayOrderId || order.razorpay_order_id
-    if (rzpOrderId && razorpayInstance) {
-      try {
-        const rzpOrder = await razorpayInstance.orders.fetch(rzpOrderId)
-        if (rzpOrder.status === 'paid') {
-          // Payment succeeded after all — leave it alone. The webhook (or
-          // verifyRazorpayPayment) will mark it paid, if it hasn't already.
-          return
-        }
-      } catch (e) {
-        // Couldn't reach Razorpay to confirm — safer to leave the order as
-        // pending than to risk cancelling a payment that actually succeeded.
-        console.warn('Failed to confirm Razorpay order status before cancelling:', e)
-        return
-      }
-    }
-
-    // Never delete the order or its items — mark it cancelled instead, so a
-    // mistaken or premature cancel can never destroy data. The admin order
-    // list already hides non-paid, non-COD orders, so this stays invisible
-    // clutter unless someone deliberately looks for it.
-    await supabaseAdmin
-      .from('orders')
-      .update({ order_status: 'cancelled', cancelled_at: new Date().toISOString() })
-      .eq('id', orderId)
-      .eq('payment_status', 'pending')
-
-    revalidatePath('/admin/orders')
-  } catch (e) {
-    console.warn('Failed to cancel pending order:', e)
-  }
-}
-

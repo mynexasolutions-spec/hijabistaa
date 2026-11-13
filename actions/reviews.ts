@@ -1,7 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, unstable_cache, updateTag } from 'next/cache'
+import { createPublicClient } from '@/lib/supabase/public'
 
 export type ActionResult = {
   error?: string
@@ -122,6 +123,7 @@ export async function submitReview(
     revalidatePath(`/shop/${productId}`)
     revalidatePath(`/admin/reviews`)
     revalidatePath(`/`, 'layout')
+    updateTag('review-counts')
     return { success: true }
   } catch (err: any) {
     console.error('Unexpected error submitting review:', err)
@@ -129,17 +131,30 @@ export async function submitReview(
   }
 }
 
+// Called on the home page and the shop page for every view. Cache the rows
+// (60s) rather than pulling every review each time; review submit/moderation
+// purges the 'review-counts' tag.
+const fetchApprovedReviewRows = unstable_cache(
+  async (): Promise<{ id: string; product_id: string }[]> => {
+    const supabase = createPublicClient()
+    if (!supabase) return []
+    const { data } = await supabase
+      .from('reviews')
+      .select('id, product_id')
+      .filter('is_approved', 'neq', false)
+    return (data as { id: string; product_id: string }[]) || []
+  },
+  ['review-counts'],
+  { revalidate: 60, tags: ['review-counts'] }
+)
+
 export async function getReviewCounts(): Promise<Record<string, number>> {
   const counts: Record<string, number> = {}
   const processedIds = new Set<string>()
 
   // 1. Fetch from Supabase
   try {
-    const supabase = await createClient()
-    const { data: sbReviews } = await supabase
-      .from('reviews')
-      .select('id, product_id, is_approved')
-      .filter('is_approved', 'neq', false)
+    const sbReviews = await fetchApprovedReviewRows()
 
     if (sbReviews) {
       sbReviews.forEach((r: any) => {

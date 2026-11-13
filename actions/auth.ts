@@ -1,5 +1,6 @@
 'use server'
 
+import { setUserSession } from '@/lib/session'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
@@ -403,16 +404,11 @@ export async function verifyEmailOtp(
   }
 
   const cookieStore = await cookies()
-  cookieStore.set('hijabistaa-user-session', JSON.stringify({
+  await setUserSession(cookieStore, {
     id: finalProfile.id,
     email: finalProfile.email,
     full_name: finalProfile.full_name,
     role: 'customer'
-  }), {
-    path: '/',
-    httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 30 * 24 * 60 * 60 // 30 days
   })
 
   revalidatePath('/', 'layout')
@@ -442,16 +438,11 @@ export async function adminLogin(
   if (isMock) {
     if (email.toLowerCase() === adminEmail.toLowerCase() && password === adminPassword) {
       const cookieStore = await cookies()
-      cookieStore.set('hijabistaa-user-session', JSON.stringify({
+      await setUserSession(cookieStore, {
         id: 'mock-admin-id',
         email: adminEmail,
         full_name: 'Admin',
         role: 'admin'
-      }), {
-        path: '/',
-        httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 30 * 24 * 60 * 60 // 30 days
       })
       cookieStore.set('mock-admin-logged-in', 'true', { path: '/' })
       revalidatePath('/admin', 'layout')
@@ -539,16 +530,11 @@ export async function adminLogin(
   }
 
   const cookieStore = await cookies()
-  cookieStore.set('hijabistaa-user-session', JSON.stringify({
+  await setUserSession(cookieStore, {
     id: data.user.id,
     email: data.user.email,
     full_name: profile?.full_name || 'Admin',
     role: 'admin'
-  }), {
-    path: '/',
-    httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 30 * 24 * 60 * 60 // 30 days
   })
 
   revalidatePath('/admin', 'layout')

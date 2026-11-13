@@ -1,3 +1,4 @@
+import { getVerifiedSession, clearUserSession } from '@/lib/session'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import fs from 'fs'
@@ -169,23 +170,22 @@ export async function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const cookieStore = await cookies()
+  const mockMode = !url || !key || url.includes('placeholder') || url === ''
 
-  const customSessionVal = cookieStore.get('hijabistaa-user-session')?.value
-  let customSession: any = null
-  if (customSessionVal) {
-    try {
-      // Next.js URL-encodes cookie values; decode before parsing
-      const decoded = decodeURIComponent(customSessionVal)
-      customSession = JSON.parse(decoded)
-    } catch (e) { }
-  }
+  // Only a session whose httpOnly signature cookie checks out is trusted —
+  // a hand-edited "hijabistaa-user-session" cookie yields null here.
+  const customSession: any = await getVerifiedSession(cookieStore)
+
+  // The unsigned "mock-admin-logged-in" cookie is a local-dev (no Supabase)
+  // convenience only. With a real Supabase project it must be ignored,
+  // otherwise anyone could set it by hand and be treated as admin.
+  const hasMockCookie = mockMode && cookieStore.get('mock-admin-logged-in')?.value === 'true'
 
   const getCustomAuth = (realAuth: any = null) => ({
     getUser: async () => {
       if (customSession) {
         return { data: { user: { id: customSession.id, email: customSession.email, user_metadata: { full_name: customSession.full_name, role: customSession.role } } }, error: null }
       }
-      const hasMockCookie = cookieStore.get('mock-admin-logged-in')?.value === 'true'
       if (hasMockCookie) {
         return { data: { user: { id: 'mock-admin-id', email: 'admin@hijabistaa.com', user_metadata: { role: 'admin' } } }, error: null }
       }
@@ -196,7 +196,6 @@ export async function createClient() {
       if (customSession) {
         return { data: { session: { user: { id: customSession.id, email: customSession.email, user_metadata: { full_name: customSession.full_name, role: customSession.role } } } }, error: null }
       }
-      const hasMockCookie = cookieStore.get('mock-admin-logged-in')?.value === 'true'
       if (hasMockCookie) {
         return { data: { session: { user: { id: 'mock-admin-id', email: 'admin@hijabistaa.com', user_metadata: { role: 'admin' } } } }, error: null }
       }
@@ -212,14 +211,14 @@ export async function createClient() {
       return { data: null, error: { message: 'Mock signin only works for admin' } }
     },
     signOut: async () => {
-      cookieStore.set('hijabistaa-user-session', '', { path: '/', expires: new Date(0) })
+      clearUserSession(cookieStore)
       cookieStore.set('mock-admin-logged-in', '', { path: '/', expires: new Date(0) })
       if (realAuth) await realAuth.signOut()
       return { error: null }
     }
   })
 
-  if (!url || !key || url.includes('placeholder') || url === '') {
+  if (mockMode) {
     // Server-side mock client to avoid crash and support local mock session
     return {
       auth: getCustomAuth(),
@@ -227,7 +226,7 @@ export async function createClient() {
     } as any
   }
 
-  const isAdmin = customSession?.role === 'admin' || cookieStore.get('mock-admin-logged-in')?.value === 'true'
+  const isAdmin = customSession?.role === 'admin' || hasMockCookie
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   const finalKey = (isAdmin && serviceRoleKey) ? serviceRoleKey : key
 

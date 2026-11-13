@@ -1,6 +1,7 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { unstable_cache } from 'next/cache'
+import { createPublicClient } from '@/lib/supabase/public'
 
 export type InstagramPost = {
   id: string
@@ -24,6 +25,23 @@ async function readLocalDb(): Promise<any> {
   }
 }
 
+// Home page + every visitor hits this; cache it instead of querying Supabase
+// per view. Purged by the admin mutations via the 'instagram-posts' tag.
+const fetchInstagramRows = unstable_cache(
+  async (): Promise<InstagramPost[]> => {
+    const supabase = createPublicClient()
+    if (!supabase) return []
+    const { data, error } = await supabase
+      .from('instagram_posts')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true })
+    return !error && data ? (data as InstagramPost[]) : []
+  },
+  ['instagram-posts'],
+  { revalidate: 3600, tags: ['instagram-posts'] }
+)
+
 export async function getInstagramPosts(): Promise<InstagramPost[]> {
   let posts: InstagramPost[] = []
 
@@ -35,14 +53,8 @@ export async function getInstagramPosts(): Promise<InstagramPost[]> {
 
   // Try fetching from Supabase
   try {
-    const supabase = await createClient()
-    const { data, error } = await supabase
-      .from('instagram_posts')
-      .select('*')
-      .eq('is_active', true)
-      .order('display_order', { ascending: true })
-
-    if (!error && data && data.length > 0) {
+    const data = await fetchInstagramRows()
+    if (data.length > 0) {
       posts = data
     }
   } catch (e) {

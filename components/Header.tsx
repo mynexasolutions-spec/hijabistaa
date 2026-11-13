@@ -9,11 +9,11 @@ import { useWishlist } from "@/context/WishlistContext";
 import CartDrawer from "./CartDrawer";
 import { DesktopMegaMenu, MobileMegaMenu } from "./MegaMenu";
 import AnnouncementBanner from "./AnnouncementBanner";
-import dbData from "@/lib/db.json";
 import { Search, Heart, Package } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getShippingSettings } from "@/actions/admin/shipping";
 import { getMegaMenuDiscoverItems } from "@/actions/admin/megaMenuDiscover";
+import { getActiveCategories } from "@/actions/categories";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -61,10 +61,9 @@ export default function Header() {
       .catch((err) => console.error("Error loading discover items:", err));
 
     const loadCategories = async () => {
-      const supabase = createClient();
-      const { data } = await supabase.from('categories').select('*').eq('is_active', true);
+      const data = await getActiveCategories();
       if (data && data.length > 0) {
-        setCategories(data.map(cat => ({
+        setCategories(data.map((cat: any) => ({
           id: cat.id,
           title: cat.name,
           description: cat.description || "",

@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
-import AdminSidebar from '@/components/admin/Sidebar'
+import { getVerifiedSession } from '@/lib/session'
+import AdminShell, { MobileMenuButton } from '@/components/admin/AdminShell'
 import AdminHeader from '@/components/admin/Header'
 
 export const dynamic = 'force-dynamic'
@@ -11,16 +12,8 @@ export default async function AdminDashboardLayout({
   children: React.ReactNode
 }) {
   const cookieStore = await cookies()
-  const mockSessionCookie = cookieStore.get('hijabistaa-user-session')?.value
-  let mockUser = null
-
-  if (mockSessionCookie) {
-    try {
-      mockUser = JSON.parse(mockSessionCookie)
-    } catch (e) {
-      // ignore parse error
-    }
-  }
+  // Signature-verified session only (null if the cookie was tampered with)
+  const mockUser = await getVerifiedSession(cookieStore)
 
   // Server-side admin authorization check
   const supabase = await createClient()
@@ -49,12 +42,8 @@ export default async function AdminDashboardLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-stone-50">
-      <AdminSidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <AdminHeader />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
-      </div>
-    </div>
+    <AdminShell header={<AdminHeader leading={<MobileMenuButton />} />}>
+      {children}
+    </AdminShell>
   )
 }

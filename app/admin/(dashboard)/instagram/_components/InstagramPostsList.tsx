@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import Image from 'next/image'
 import { InstagramPost } from '@/actions/instagram'
+import { uploadImageToCloudinary } from '@/lib/cloudinaryUpload'
 import {
   addInstagramPost,
   updateInstagramPost,
@@ -68,26 +69,21 @@ export function InstagramPostsList({ initialPosts }: { initialPosts: InstagramPo
     setIsModalOpen(true)
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    if (!file.type.startsWith('image/')) {
-      setErrorMsg('Please select a valid image file.')
-      return
+    setIsSubmitting(true)
+    setErrorMsg(null)
+    try {
+      const url = await uploadImageToCloudinary(file, 'hijabistaa/instagram')
+      setFormData((prev) => ({ ...prev, image_url: url }))
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Upload failed.')
+    } finally {
+      setIsSubmitting(false)
+      e.target.value = ''
     }
-
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setFormData((prev) => ({
-          ...prev,
-          image_url: event.target?.result as string,
-        }))
-        setErrorMsg(null)
-      }
-    }
-    reader.readAsDataURL(file)
   }
 
   const handleToggleActive = async (post: InstagramPost) => {
